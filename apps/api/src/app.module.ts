@@ -1,9 +1,21 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from './config/config.module.js';
 import { DatabaseModule } from './database/database.module.js';
+import { AuthModule } from './modules/auth/auth.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 
 @Module({
-  imports: [ConfigModule, DatabaseModule, HealthModule],
+  imports: [
+    ConfigModule,
+    DatabaseModule,
+    ThrottlerModule.forRoot([
+      { ttl: 60_000, limit: process.env.NODE_ENV === 'test' ? 10_000 : 120 },
+    ]),
+    AuthModule,
+    HealthModule,
+  ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}
