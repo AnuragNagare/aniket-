@@ -22,6 +22,20 @@ const isEnvelope = (body: unknown): boolean =>
   typeof (body as { error?: unknown }).error === 'object' &&
   (body as { error: unknown }).error !== null;
 
+/** Replaces framework wording that would confuse a person reading the error. */
+function friendlyMessage(status: number): string | null {
+  if (status === 429) return 'Too many attempts. Wait a minute and try again.';
+  // Our own 400s are AppErrors (already enveloped). A bare 400 here comes from Nest
+  // rejecting an unreadable request (bad JSON, bad URL encoding) with parser wording.
+  if (status === 400) return 'The request could not be read. Send valid JSON.';
+  return null;
+}
+
+function frameworkMessage(body: string | object): string {
+  const raw = typeof body === 'string' ? body : (body as { message?: string | string[] }).message;
+  return Array.isArray(raw) ? raw.join('; ') : (raw ?? 'Request failed.');
+}
+
 /** Renders every error, ours or Nest's, in the API contract's error envelope. */
 @Catch()
 export class ErrorEnvelopeFilter implements ExceptionFilter {
@@ -35,9 +49,7 @@ export class ErrorEnvelopeFilter implements ExceptionFilter {
       // Our AppError already carries the envelope. Nest's built-ins also have an `error`
       // key, but as a string ("Not Found"), so only an object counts as an envelope.
       if (isEnvelope(body)) return res.status(status).json(body);
-      const raw =
-        typeof body === 'string' ? body : (body as { message?: string | string[] }).message;
-      const message = Array.isArray(raw) ? raw.join('; ') : (raw ?? 'Request failed.');
+      const message = friendlyMessage(status) ?? frameworkMessage(body);
       return res
         .status(status)
         .json({ error: { code: CODES[status] ?? 'ERROR', message, details: {} } });
