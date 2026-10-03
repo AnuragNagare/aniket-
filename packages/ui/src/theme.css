@@ -1,0 +1,32 @@
+/* Tailwind v4 theme for the web app. Must mirror tokens.ts (enforced by test/tokens.test.ts). */
+@theme {
+  --color-canvas: #FBF8F5;
+  --color-surface: #FFFFFF;
+  --color-line: #ECE7E1;
+  --color-ink-900: #17130F;
+  --color-ink-700: #3A3631;
+  --color-ink-500: #6B6E72;
+  --color-ink-300: #A9ACB0;
+  --color-brand-50: #FFF5EE;
+  --color-brand-100: #FFE8D7;
+  --color-brand-200: #FFCDA8;
+  --color-brand-400: #FF7A2E;
+  --color-brand-500: #FE5A0C;
+  --color-brand-600: #E84A00;
+  --color-brand-700: #B83A00;
+  --color-success-50: #EAF7EF;
+  --color-success-500: #1F9D55;
+  --color-danger-500: #DC2626;
+
+  --radius-input: 12px;
+  --radius-card: 16px;
+  --radius-panel: 20px;
+
+  --shadow-card: 0 1px 2px rgba(23,19,15,.04), 0 8px 24px rgba(23,19,15,.06);
+
+  --font-display: var(--font-barlow-semi-condensed), 'Barlow Semi Condensed', sans-serif;
+  --font-body: var(--font-barlow), 'Barlow', sans-serif;
+}
+
+.bg-cta { background-image: linear-gradient(90deg, #FF7A2E 0%, #E84A00 100%); }
+.bg-auth-panel { background-image: linear-gradient(180deg, #FFF3E8 0%, #FFE6D2 100%); }
