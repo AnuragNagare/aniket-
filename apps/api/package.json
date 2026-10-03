@@ -20,8 +20,12 @@
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "test:unit": "vitest run",
     "typecheck": "tsc --noEmit",
-    "dev": "dotenv -e ../../.env -- nest start --watch",
-    "postinstall": "prisma generate"
+    "dev": "node scripts/with-env.mjs nest start --watch",
+    "postinstall": "prisma generate",
+    "db:migrate": "node scripts/with-env.mjs prisma migrate dev",
+    "db:test:migrate": "node scripts/with-env.mjs --test prisma migrate deploy",
+    "db:reset": "node scripts/with-env.mjs prisma migrate reset --force --skip-seed",
+    "db:seed": "node scripts/with-env.mjs tsx prisma/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
@@ -50,7 +54,6 @@
     "@types/node": "^24.0.0",
     "@types/supertest": "^7.0.0",
     "@vitest/coverage-v8": "^4.1.2",
-    "dotenv-cli": "^11.0.0",
     "oxlint": "^1.58.0",
     "oxlint-tsgolint": "^7.0.2001",
     "prettier": "^3.4.2",

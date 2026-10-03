@@ -1,3 +1,8 @@
+// Work Trail data model (docs/specs/data-model.pdf).
+// Deliberate additions: employees.name/email/phone (needed before an invite is
+// accepted) and refresh_tokens (opaque, rotating, hashed). User email is globally
+// unique so sign-in needs only an email.
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -5,4 +10,287 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  EMPLOYEE
+}
+
+enum UserStatus {
+  INVITED
+  ACTIVE
+  DISABLED
+}
+
+enum SessionStatus {
+  ACTIVE
+  COMPLETED
+  INCOMPLETE
+}
+
+enum LocationSource {
+  START
+  BACKGROUND
+  END
+  MANUAL
+}
+
+enum QualityFlag {
+  GOOD
+  LOW_ACCURACY
+  SUSPICIOUS
+  INVALID
+}
+
+enum InputMethod {
+  TYPED
+  VOICE
+}
+
+enum SummaryStatus {
+  QUEUED
+  PROCESSING
+  COMPLETE
+  FAILED
+}
+
+enum PeriodType {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum ReportStatus {
+  QUEUED
+  GENERATING
+  READY
+  FAILED
+}
+
+model Company {
+  id                           String   @id @default(uuid()) @db.Uuid
+  name                         String   @db.VarChar(160)
+  timezone                     String   @default("Asia/Kolkata") @db.VarChar(64)
+  preciseLocationRetentionDays Int      @default(90) @map("precise_location_retention_days")
+  createdAt                    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                    DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  users       User[]
+  employees   Employee[]
+  invitations Invitation[]
+  sessions    WorkSession[]
+  points      LocationPoint[]
+  updates     WorkUpdate[]
+  summaries   GeneratedSummary[]
+  reports     Report[]
+  auditLogs   AuditLog[]
+
+  @@map("companies")
+}
+
+model User {
+  id           String     @id @default(uuid()) @db.Uuid
+  companyId    String     @map("company_id") @db.Uuid
+  role         UserRole
+  name         String     @db.VarChar(160)
+  email        String     @unique @db.VarChar(254)
+  phone        String?    @db.VarChar(24)
+  passwordHash String     @map("password_hash")
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+
+  company       Company        @relation(fields: [companyId], references: [id])
+  employee      Employee?
+  refreshTokens RefreshToken[]
+
+  @@index([companyId])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @map("token_hash")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Employee {
+  id           String   @id @default(uuid()) @db.Uuid
+  companyId    String   @map("company_id") @db.Uuid
+  userId       String?  @unique @map("user_id") @db.Uuid
+  name         String   @db.VarChar(160)
+  email        String?  @db.VarChar(254)
+  phone        String?  @db.VarChar(24)
+  employeeCode String?  @map("employee_code") @db.VarChar(80)
+  designation  String?  @db.VarChar(120)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  company     Company            @relation(fields: [companyId], references: [id])
+  user        User?              @relation(fields: [userId], references: [id])
+  invitations Invitation[]
+  sessions    WorkSession[]
+  points      LocationPoint[]
+  updates     WorkUpdate[]
+  summaries   GeneratedSummary[]
+  reports     Report[]
+
+  @@unique([companyId, employeeCode])
+  @@index([companyId])
+  @@map("employees")
+}
+
+model Invitation {
+  id              String    @id @default(uuid()) @db.Uuid
+  companyId       String    @map("company_id") @db.Uuid
+  employeeId      String    @map("employee_id") @db.Uuid
+  tokenHash       String    @unique @map("token_hash")
+  expiresAt       DateTime  @map("expires_at") @db.Timestamptz
+  acceptedAt      DateTime? @map("accepted_at") @db.Timestamptz
+  createdByUserId String    @map("created_by_user_id") @db.Uuid
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  company  Company  @relation(fields: [companyId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("invitations")
+}
+
+model WorkSession {
+  id              String        @id @default(uuid()) @db.Uuid
+  companyId       String        @map("company_id") @db.Uuid
+  employeeId      String        @map("employee_id") @db.Uuid
+  status          SessionStatus @default(ACTIVE)
+  startedAtServer DateTime      @map("started_at_server") @db.Timestamptz
+  startedAtDevice DateTime?     @map("started_at_device") @db.Timestamptz
+  endedAtServer   DateTime?     @map("ended_at_server") @db.Timestamptz
+  endedAtDevice   DateTime?     @map("ended_at_device") @db.Timestamptz
+  totalMinutes    Int?          @map("total_minutes")
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  company  Company         @relation(fields: [companyId], references: [id])
+  employee Employee        @relation(fields: [employeeId], references: [id])
+  points   LocationPoint[]
+  updates  WorkUpdate[]
+
+  @@index([employeeId, startedAtServer])
+  @@index([companyId, startedAtServer])
+  @@map("work_sessions")
+}
+
+model LocationPoint {
+  id             String         @id @default(uuid()) @db.Uuid
+  companyId      String         @map("company_id") @db.Uuid
+  employeeId     String         @map("employee_id") @db.Uuid
+  sessionId      String         @map("session_id") @db.Uuid
+  clientPointId  String         @map("client_point_id") @db.Uuid
+  latitude       Decimal        @db.Decimal(10, 7)
+  longitude      Decimal        @db.Decimal(10, 7)
+  accuracyMeters Decimal?       @map("accuracy_meters") @db.Decimal(8, 2)
+  speedMps       Decimal?       @map("speed_mps")
+  bearing        Decimal?
+  batteryLevel   Decimal?       @map("battery_level") @db.Decimal(4, 3)
+  source         LocationSource
+  capturedAt     DateTime       @map("captured_at") @db.Timestamptz
+  receivedAt     DateTime       @default(now()) @map("received_at") @db.Timestamptz
+  qualityFlag    QualityFlag    @default(GOOD) @map("quality_flag")
+
+  company  Company     @relation(fields: [companyId], references: [id])
+  employee Employee    @relation(fields: [employeeId], references: [id])
+  session  WorkSession @relation(fields: [sessionId], references: [id])
+
+  @@unique([employeeId, clientPointId])
+  @@index([employeeId, capturedAt])
+  @@index([sessionId, capturedAt])
+  @@index([companyId, capturedAt])
+  @@map("location_points")
+}
+
+model WorkUpdate {
+  id               String        @id @default(uuid()) @db.Uuid
+  companyId        String        @map("company_id") @db.Uuid
+  employeeId       String        @map("employee_id") @db.Uuid
+  sessionId        String        @map("session_id") @db.Uuid
+  text             String
+  inputMethod      InputMethod   @map("input_method")
+  category         String?       @db.VarChar(64)
+  submittedAt      DateTime      @default(now()) @map("submitted_at") @db.Timestamptz
+  summaryStatus    SummaryStatus @default(QUEUED) @map("summary_status")
+  aiSummary        String?       @map("ai_summary")
+  aiStructuredData Json?         @map("ai_structured_data")
+  modelName        String?       @map("model_name") @db.VarChar(120)
+
+  company  Company     @relation(fields: [companyId], references: [id])
+  employee Employee    @relation(fields: [employeeId], references: [id])
+  session  WorkSession @relation(fields: [sessionId], references: [id])
+
+  @@index([companyId, submittedAt])
+  @@index([employeeId, submittedAt])
+  @@map("work_updates")
+}
+
+model GeneratedSummary {
+  id                   String        @id @default(uuid()) @db.Uuid
+  companyId            String        @map("company_id") @db.Uuid
+  employeeId           String        @map("employee_id") @db.Uuid
+  periodType           PeriodType    @map("period_type")
+  periodStart          DateTime      @map("period_start") @db.Timestamptz
+  periodEnd            DateTime      @map("period_end") @db.Timestamptz
+  sourceUpdateCount    Int           @map("source_update_count")
+  sourceSessionMinutes Int           @map("source_session_minutes")
+  content              String?
+  structuredData       Json?         @map("structured_data")
+  status               SummaryStatus @default(QUEUED)
+  generatedAt          DateTime?     @map("generated_at") @db.Timestamptz
+
+  company  Company  @relation(fields: [companyId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@unique([employeeId, periodType, periodStart, periodEnd])
+  @@map("generated_summaries")
+}
+
+model Report {
+  id                String       @id @default(uuid()) @db.Uuid
+  companyId         String       @map("company_id") @db.Uuid
+  employeeId        String       @map("employee_id") @db.Uuid
+  requestedByUserId String       @map("requested_by_user_id") @db.Uuid
+  periodStart       DateTime     @map("period_start") @db.Timestamptz
+  periodEnd         DateTime     @map("period_end") @db.Timestamptz
+  status            ReportStatus @default(QUEUED)
+  storageKey        String?      @map("storage_key")
+  generatedAt       DateTime?    @map("generated_at") @db.Timestamptz
+  expiresAt         DateTime?    @map("expires_at") @db.Timestamptz
+
+  company  Company  @relation(fields: [companyId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("reports")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  companyId   String   @map("company_id") @db.Uuid
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  action      String   @db.VarChar(80)
+  entityType  String   @map("entity_type") @db.VarChar(80)
+  entityId    String?  @map("entity_id") @db.Uuid
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@index([companyId, createdAt])
+  @@map("audit_logs")
 }
