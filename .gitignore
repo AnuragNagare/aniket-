@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.next/
+.turbo/
+coverage/
+.env
+.env.*
+!.env.example
+*.pem
+.expo/
+# local tooling
+.claude/
+.serena/
+.superpowers/
