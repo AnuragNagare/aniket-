@@ -10,3 +10,5 @@ allowBuilds:
   "@prisma/engines": true
   "@nestjs/core": true
   "@swc/core": true
+  sharp: false
+  unrs-resolver: false
