@@ -1,8 +1,9 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
+import type { EmployeeStatus } from '@worktrail/types';
 import { CurrentAuth } from '../../auth/decorators/current-auth.decorator.js';
 import { Roles } from '../../auth/decorators/roles.decorator.js';
 import type { AuthContext } from '../../auth/types/auth-context.js';
-import { EmployeesService, type EmployeeStatus } from '../services/employees.service.js';
+import { EmployeesService } from '../services/employees.service.js';
 
 const clampInt = (value: string | undefined, fallback: number, max: number) => {
   const n = Number.parseInt(value ?? '', 10);

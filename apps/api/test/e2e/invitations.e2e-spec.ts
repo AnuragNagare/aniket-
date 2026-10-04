@@ -1,0 +1,126 @@
+import request from 'supertest';
+import type { INestApplication } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
+import { createApp } from '../../src/bootstrap.js';
+import { makeEmployee, resetDb } from '../helpers/db.js';
+import { signupAs } from '../helpers/auth.js';
+import { lastMailTo, outbox } from '../helpers/mail.js';
+
+const prisma = new PrismaClient();
+const ravi = {
+  name: 'Ravi Kumar',
+  email: 'ravi@example.com',
+  phone: '98765 43210',
+  designation: 'Field Technician',
+  employeeCode: 'FT-101',
+};
+
+afterAll(() => prisma.$disconnect());
+
+describe('invitations (admin)', () => {
+  let app: INestApplication;
+  const http = () => request(app.getHttpServer());
+  const invite = (token: string, body: object = ravi) =>
+    http().post('/api/v1/employees/invitations').set('Authorization', `Bearer ${token}`).send(body);
+
+  beforeAll(async () => {
+    app = await createApp();
+    await app.init();
+  });
+  beforeEach(async () => {
+    await resetDb(prisma);
+    outbox(app).sent.length = 0;
+  });
+  afterAll(() => app.close());
+
+  it('creates the employee, a hashed 7-day invite, an email and an audit entry', async () => {
+    const a = await signupAs(app);
+    const res = await invite(a.token).expect(201);
+
+    expect(res.body.inviteUrl).toMatch(/^http:\/\/localhost:3000\/invite\/[\w-]{43}$/);
+    expect(res.body.emailSent).toBe(true);
+    const days = (new Date(res.body.expiresAt).getTime() - Date.now()) / 86_400_000;
+    expect(days).toBeGreaterThan(6.9);
+    expect(days).toBeLessThanOrEqual(7);
+
+    const employee = await prisma.employee.findUniqueOrThrow({ where: { id: res.body.employeeId } });
+    expect(employee).toMatchObject({
+      companyId: a.user.companyId,
+      email: 'ravi@example.com',
+      phone: '+919876543210',
+      userId: null,
+    });
+
+    const token = res.body.inviteUrl.split('/invite/')[1];
+    const stored = await prisma.invitation.findFirstOrThrow({ where: { employeeId: employee.id } });
+    expect(stored.tokenHash).not.toBe(token); // only the hash is stored
+
+    expect(lastMailTo(app, 'ravi@example.com')?.text).toContain(res.body.inviteUrl);
+    expect(
+      await prisma.auditLog.count({ where: { action: 'invitation.created', actorUserId: a.user.id } }),
+    ).toBe(1);
+
+    const list = await http().get('/api/v1/employees').set('Authorization', `Bearer ${a.token}`).expect(200);
+    expect(list.body.items[0]).toMatchObject({
+      name: 'Ravi Kumar',
+      email: 'ravi@example.com',
+      account: 'INVITED',
+      status: 'OFF_DUTY',
+    });
+  });
+
+  it('refuses an email that already has a Work Trail account, before creating anything', async () => {
+    const a = await signupAs(app);
+    const res = await invite(a.token, { ...ravi, email: a.user.email }).expect(409);
+    expect(res.body.error.code).toBe('EMAIL_TAKEN');
+    expect(await prisma.employee.count()).toBe(0);
+  });
+
+  it('refuses inviting the same person twice', async () => {
+    const a = await signupAs(app);
+    await invite(a.token).expect(201);
+    const res = await invite(a.token, { ...ravi, employeeCode: 'FT-102' }).expect(409);
+    expect(res.body.error.code).toBe('ALREADY_INVITED');
+  });
+
+  it('refuses a duplicate employee ID within the company', async () => {
+    const a = await signupAs(app);
+    await invite(a.token).expect(201);
+    const res = await invite(a.token, { ...ravi, email: 'other@example.com' }).expect(409);
+    expect(res.body.error.code).toBe('EMPLOYEE_CODE_TAKEN');
+  });
+
+  it('validates the body with field messages', async () => {
+    const a = await signupAs(app);
+    const res = await invite(a.token, { name: 'R', email: 'nope' }).expect(400);
+    expect(res.body.error.details.fields).toMatchObject({ email: 'Enter a valid email address.' });
+  });
+
+  it('resend revokes the old link and issues a new one', async () => {
+    const a = await signupAs(app);
+    const first = await invite(a.token).expect(201);
+    const second = await http()
+      .post(`/api/v1/employees/${first.body.employeeId}/invitations`)
+      .set('Authorization', `Bearer ${a.token}`)
+      .expect(201);
+    expect(second.body.inviteUrl).not.toBe(first.body.inviteUrl);
+    const rows = await prisma.invitation.findMany({
+      where: { employeeId: first.body.employeeId },
+      orderBy: { createdAt: 'asc' },
+    });
+    expect(rows).toHaveLength(2);
+    expect(rows[0]!.revokedAt).not.toBeNull();
+    expect(rows[1]!.revokedAt).toBeNull();
+    expect(await prisma.auditLog.count({ where: { action: 'invitation.resent' } })).toBe(1);
+  });
+
+  it("resend returns 404 for another company's employee", async () => {
+    const a = await signupAs(app);
+    const b = await signupAs(app);
+    const theirs = await makeEmployee(prisma, b.user.companyId, { email: 'x@b.in' });
+    await http()
+      .post(`/api/v1/employees/${theirs.id}/invitations`)
+      .set('Authorization', `Bearer ${a.token}`)
+      .expect(404);
+  });
+});

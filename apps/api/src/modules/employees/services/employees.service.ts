@@ -1,17 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
+import type { EmployeeListItem, EmployeeListResponse, EmployeeStatus } from '@worktrail/types';
 import { AppError } from '../../../common/errors/app-error.js';
 import { PrismaService } from '../../../database/prisma.service.js';
-
-export type EmployeeStatus = 'WORKING' | 'OFF_DUTY';
-
-export type EmployeeListItem = {
-  id: string;
-  name: string;
-  designation: string | null;
-  employeeCode: string | null;
-  status: EmployeeStatus;
-};
 
 export type EmployeeListQuery = {
   query?: string;
@@ -27,6 +18,8 @@ const select = {
   name: true,
   designation: true,
   employeeCode: true,
+  email: true,
+  userId: true,
   sessions: { where: { status: 'ACTIVE' as const }, select: { id: true }, take: 1 },
 } satisfies Prisma.EmployeeSelect;
 
@@ -37,7 +30,9 @@ const toItem = (r: Row): EmployeeListItem => ({
   name: r.name,
   designation: r.designation,
   employeeCode: r.employeeCode,
+  email: r.email,
   status: r.sessions.length ? 'WORKING' : 'OFF_DUTY',
+  account: r.userId ? 'ACTIVE' : 'INVITED',
 });
 
 /** Employee reads. Every query is scoped to the caller's company. */
@@ -45,7 +40,7 @@ const toItem = (r: Row): EmployeeListItem => ({
 export class EmployeesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(companyId: string, q: EmployeeListQuery) {
+  async list(companyId: string, q: EmployeeListQuery): Promise<EmployeeListResponse> {
     const where: Prisma.EmployeeWhereInput = { companyId };
     if (q.query) where.name = { contains: q.query, mode: 'insensitive' };
     if (q.status === 'WORKING') where.sessions = { some: { status: 'ACTIVE' } };

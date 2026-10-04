@@ -9,6 +9,7 @@ import { AuthModule } from './modules/auth/auth.module.js';
 import { DashboardModule } from './modules/dashboard/dashboard.module.js';
 import { EmployeesModule } from './modules/employees/employees.module.js';
 import { HealthModule } from './modules/health/health.module.js';
+import { InvitationsModule } from './modules/invitations/invitations.module.js';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { HealthModule } from './modules/health/health.module.js';
     ]),
     AuthModule,
     EmployeesModule,
+    InvitationsModule,
     DashboardModule,
     HealthModule,
   ],
