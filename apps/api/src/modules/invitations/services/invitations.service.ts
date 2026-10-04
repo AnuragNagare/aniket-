@@ -1,6 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import type { InvitationCreated, InviteEmployeeInput } from '@worktrail/types';
+import type {
+  AcceptInvitationInput,
+  AuthTokens,
+  InvitationCreated,
+  InvitationPreview,
+  InviteEmployeeInput,
+} from '@worktrail/types';
 import { addDays } from 'date-fns';
 import { AuditService } from '../../../common/audit/audit.service.js';
 import { AppError } from '../../../common/errors/app-error.js';
@@ -8,20 +14,107 @@ import { Mailer } from '../../../common/mail/mailer.js';
 import { newToken, sha256 } from '../../../common/utils/secure-token.js';
 import { ENV, type Env } from '../../../config/env.js';
 import { PrismaService } from '../../../database/prisma.service.js';
+import { TokensService } from '../../auth/services/tokens.service.js';
 import type { AuthContext } from '../../auth/types/auth-context.js';
+import { hashPassword } from '../../auth/utils/password.js';
 
 export const INVITE_TTL_DAYS = 7;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Invitation lifecycle: create and re-send single-use, expiring invite links. */
+const inviteInvalid = () =>
+  new AppError(
+    410,
+    'INVITE_INVALID',
+    'This invite link has expired or was already used. Ask your admin for a new one.',
+  );
+
+const isUsable = (i: { acceptedAt: Date | null; revokedAt: Date | null; expiresAt: Date }) =>
+  !i.acceptedAt && !i.revokedAt && i.expiresAt > new Date();
+
+/** Invitation lifecycle: create, re-send, preview and accept single-use, expiring invite links. */
 @Injectable()
 export class InvitationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly mailer: Mailer,
+    private readonly tokens: TokensService,
     @Inject(ENV) private readonly env: Env,
   ) {}
+
+  /** Public: what the invite page shows before the employee sets a password. */
+  async preview(token: string): Promise<InvitationPreview> {
+    const invitation = await this.prisma.invitation.findUnique({
+      where: { tokenHash: sha256(token) },
+      include: { employee: true, company: true },
+    });
+    if (!invitation || !isUsable(invitation) || !invitation.employee.email) throw inviteInvalid();
+    return {
+      companyName: invitation.company.name,
+      employeeName: invitation.employee.name,
+      email: invitation.employee.email,
+      expiresAt: invitation.expiresAt.toISOString(),
+    };
+  }
+
+  /** Public: claims the link (once), creates the EMPLOYEE account and signs them in. */
+  async accept(token: string, input: AcceptInvitationInput): Promise<AuthTokens> {
+    const tokenHash = sha256(token);
+    const passwordHash = await hashPassword(input.password);
+    try {
+      const user = await this.prisma.$transaction(async (tx) => {
+        // Atomic claim: of two simultaneous accepts, exactly one updates the row.
+        const claimed = await tx.invitation.updateMany({
+          where: { tokenHash, acceptedAt: null, revokedAt: null, expiresAt: { gt: new Date() } },
+          data: { acceptedAt: new Date() },
+        });
+        if (claimed.count === 0) throw inviteInvalid();
+
+        const invitation = await tx.invitation.findUniqueOrThrow({
+          where: { tokenHash },
+          include: { employee: true },
+        });
+        const { employee } = invitation;
+        if (employee.userId || !employee.email) throw inviteInvalid();
+
+        const created = await tx.user.create({
+          data: {
+            companyId: invitation.companyId,
+            role: 'EMPLOYEE',
+            name: input.name,
+            email: employee.email,
+            phone: employee.phone,
+            passwordHash,
+          },
+        });
+        await tx.employee.update({
+          where: { id: employee.id },
+          data: { userId: created.id, name: input.name },
+        });
+        await this.audit.record(
+          {
+            companyId: invitation.companyId,
+            actorUserId: created.id,
+            action: 'invitation.accepted',
+            entityType: 'invitation',
+            entityId: invitation.id,
+          },
+          tx,
+        );
+        return created;
+      });
+      return await this.tokens.issue(user);
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+        throw new AppError(
+          409,
+          'EMAIL_TAKEN',
+          'This email already has a Work Trail account. Ask your admin to use a different email.',
+        );
+      }
+      throw e;
+    }
+  }
 
   async invite(auth: AuthContext, input: InviteEmployeeInput): Promise<InvitationCreated> {
     if (await this.prisma.user.findUnique({ where: { email: input.email } })) {

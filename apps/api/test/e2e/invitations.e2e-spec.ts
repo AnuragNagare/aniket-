@@ -124,3 +124,110 @@ describe('invitations (admin)', () => {
       .expect(404);
   });
 });
+
+describe('invitations (employee accepts)', () => {
+  let app: INestApplication;
+  const http = () => request(app.getHttpServer());
+
+  async function invited() {
+    const a = await signupAs(app);
+    const res = await http()
+      .post('/api/v1/employees/invitations')
+      .set('Authorization', `Bearer ${a.token}`)
+      .send(ravi)
+      .expect(201);
+    const token = (res.body.inviteUrl as string).split('/invite/')[1]!;
+    return { admin: a, token, employeeId: res.body.employeeId as string };
+  }
+  const accept = (token: string, body: object = { name: 'Ravi K', password: 'StrongPass1' }) =>
+    http().post(`/api/v1/employees/invitations/${token}/accept`).send(body);
+
+  beforeAll(async () => {
+    app = await createApp();
+    await app.init();
+  });
+  beforeEach(() => resetDb(prisma));
+  afterAll(() => app.close());
+
+  it('preview shows who invited whom, without signing in', async () => {
+    const { admin, token } = await invited();
+    const res = await http().get(`/api/v1/employees/invitations/${token}`).expect(200);
+    const company = await prisma.company.findUniqueOrThrow({ where: { id: admin.user.companyId } });
+    expect(res.body).toMatchObject({
+      companyName: company.name,
+      employeeName: 'Ravi Kumar',
+      email: 'ravi@example.com',
+    });
+  });
+
+  it('an unknown token is 410 with a plain message', async () => {
+    const res = await http().get(`/api/v1/employees/invitations/${'x'.repeat(43)}`).expect(410);
+    expect(res.body.error).toMatchObject({
+      code: 'INVITE_INVALID',
+      message: 'This invite link has expired or was already used. Ask your admin for a new one.',
+    });
+  });
+
+  it('accept creates an EMPLOYEE account linked to the employee and signs them in', async () => {
+    const { admin, token, employeeId } = await invited();
+    const res = await accept(token).expect(200);
+    expect(res.body.user).toMatchObject({
+      role: 'EMPLOYEE',
+      email: 'ravi@example.com',
+      name: 'Ravi K',
+      companyId: admin.user.companyId,
+    });
+    const employee = await prisma.employee.findUniqueOrThrow({ where: { id: employeeId } });
+    expect(employee.userId).toBe(res.body.user.id);
+    expect(employee.name).toBe('Ravi K');
+    await http()
+      .post('/api/v1/auth/login')
+      .send({ email: 'ravi@example.com', password: 'StrongPass1' })
+      .expect(200);
+    expect(
+      await prisma.auditLog.count({ where: { action: 'invitation.accepted', actorUserId: res.body.user.id } }),
+    ).toBe(1);
+    const list = await http().get('/api/v1/employees').set('Authorization', `Bearer ${admin.token}`);
+    expect(list.body.items[0].account).toBe('ACTIVE');
+  });
+
+  it('a link works once, even when opened twice at the same moment', async () => {
+    const { token } = await invited();
+    const [a, b] = await Promise.all([accept(token), accept(token)]);
+    expect([a.status, b.status].sort((x, y) => x - y)).toEqual([200, 410]);
+    expect(await prisma.user.count({ where: { role: 'EMPLOYEE' } })).toBe(1);
+    await accept(token).expect(410);
+  });
+
+  it('an expired link is refused', async () => {
+    const { token } = await invited();
+    await prisma.invitation.updateMany({ data: { expiresAt: new Date(Date.now() - 1000) } });
+    await accept(token).expect(410);
+  });
+
+  it('a revoked link (after resend) is refused and the new one works', async () => {
+    const { admin, token, employeeId } = await invited();
+    const again = await http()
+      .post(`/api/v1/employees/${employeeId}/invitations`)
+      .set('Authorization', `Bearer ${admin.token}`)
+      .expect(201);
+    await accept(token).expect(410);
+    await accept((again.body.inviteUrl as string).split('/invite/')[1]!).expect(200);
+  });
+
+  it('a weak password is a 400 and leaves the link usable', async () => {
+    const { token } = await invited();
+    await accept(token, { name: 'Ravi', password: 'short' }).expect(400);
+    await accept(token).expect(200);
+  });
+
+  it('an EMPLOYEE cannot invite others', async () => {
+    const { token } = await invited();
+    const { body } = await accept(token).expect(200);
+    await http()
+      .post('/api/v1/employees/invitations')
+      .set('Authorization', `Bearer ${body.accessToken}`)
+      .send({ ...ravi, email: 'new@example.com', employeeCode: 'FT-9' })
+      .expect(403);
+  });
+});
