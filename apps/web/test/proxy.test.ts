@@ -32,6 +32,15 @@ describe('proxy', () => {
     expect(res.headers.get('x-middleware-request-cookie')).toContain('wt_at=new-at');
   });
 
+  it('keeps a browser-session login browser-session-only after refreshing', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      Response.json({ accessToken: 'new-at', refreshToken: 'new-rt', user: {} }),
+    );
+    const res = await proxy(req('/app/dashboard', { wt_rt: 'old-rt', wt_so: '1' }));
+    const refresh = res.headers.getSetCookie().find((c) => c.startsWith('wt_rt='))!;
+    expect(refresh).not.toMatch(/Max-Age|Expires/i);
+  });
+
   it('clears cookies and redirects when refresh fails', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ error: {} }, { status: 401 }));
     const res = await proxy(req('/app/dashboard', { wt_rt: 'revoked' }));

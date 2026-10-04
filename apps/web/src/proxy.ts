@@ -5,6 +5,7 @@ import {
   ACCESS_COOKIE,
   clearSessionCookies,
   REFRESH_COOKIE,
+  SESSION_ONLY_COOKIE,
   setSessionCookies,
 } from '@/lib/session';
 
@@ -52,7 +53,9 @@ export async function proxy(req: NextRequest) {
   req.cookies.set(ACCESS_COOKIE, tokens.accessToken);
   req.cookies.set(REFRESH_COOKIE, tokens.refreshToken);
   const res = NextResponse.next({ request: { headers: req.headers } });
-  setSessionCookies(res.cookies, tokens);
+  setSessionCookies(res.cookies, tokens, {
+    persistent: req.cookies.get(SESSION_ONLY_COOKIE)?.value !== '1',
+  });
   return res;
 }
 

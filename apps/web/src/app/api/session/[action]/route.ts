@@ -35,12 +35,13 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ action: st
   const target = TARGETS[action];
   if (!target) return NextResponse.json(errorBody('NOT_FOUND', 'Not found.'), { status: 404 });
 
+  const rawBody = await req.text();
   let apiRes: Response;
   try {
     apiRes = await fetch(apiUrl(target), {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: await req.text(),
+      body: rawBody,
     });
   } catch {
     return NextResponse.json(
@@ -57,6 +58,15 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ action: st
 
   const tokens = body as AuthTokens;
   const res = NextResponse.json({ user: tokens.user });
-  setSessionCookies(res.cookies, tokens);
+  setSessionCookies(res.cookies, tokens, { persistent: wantsToBeRemembered(rawBody) });
   return res;
+}
+
+/** "Remember me" defaults to on; only an explicit `remember: false` makes it session-only. */
+function wantsToBeRemembered(rawBody: string): boolean {
+  try {
+    return (JSON.parse(rawBody) as { remember?: unknown }).remember !== false;
+  } catch {
+    return true;
+  }
 }

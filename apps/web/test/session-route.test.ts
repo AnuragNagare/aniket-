@@ -33,6 +33,21 @@ describe('session route', () => {
     expect(cookies).toMatch(/wt_rt=11111111-1111-1111-1111-111111111111\.secret;.*HttpOnly/i);
   });
 
+  it('login with "Remember me" off keeps the session only until the browser closes', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json(tokens));
+    const res = await call('login', { email: 'r@a.in', password: 'x', remember: false });
+    const refresh = res.headers.getSetCookie().find((c) => c.startsWith('wt_rt='))!;
+    expect(refresh).not.toMatch(/Max-Age|Expires/i);
+    expect(res.headers.getSetCookie().join('\n')).toMatch(/wt_so=1;/);
+  });
+
+  it('login with "Remember me" on keeps a 30-day refresh cookie', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json(tokens));
+    const res = await call('login', { email: 'r@a.in', password: 'x', remember: true });
+    const refresh = res.headers.getSetCookie().find((c) => c.startsWith('wt_rt='))!;
+    expect(refresh).toMatch(/Max-Age=2592000/);
+  });
+
   it('signup forwards to /auth/signup/admin', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')

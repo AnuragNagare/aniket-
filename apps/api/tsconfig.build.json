@@ -1,7 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "rootDir": "./src"
+    "rootDir": "./src",
+    // `nest build` empties dist/ first; incremental builds would then skip unchanged files.
+    "incremental": false
   },
   "include": ["src"],
   "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
