@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
-import { POST } from '@/app/api/session/[action]/route';
+import { GET, POST } from '@/app/api/session/[action]/route';
 
 const tokens = {
   accessToken: 'at.jwt',
@@ -89,6 +89,16 @@ describe('session route', () => {
     const [url, init] = fetchMock.mock.calls[0]!;
     expect(url).toMatch(/\/api\/v1\/auth\/logout$/);
     expect(JSON.parse(String((init as RequestInit).body))).toEqual({ refreshToken: 'rt-1' });
+    const cookies = res.headers.getSetCookie().join('\n');
+    expect(cookies).toMatch(/wt_at=;/);
+    expect(cookies).toMatch(/wt_rt=;/);
+  });
+
+  it('GET expired clears the rejected session and goes to sign-in (no redirect loop)', async () => {
+    const req = new NextRequest('http://localhost:3000/api/session/expired');
+    req.cookies.set('wt_at', 'stale');
+    const res = await GET(req, { params: Promise.resolve({ action: 'expired' }) });
+    expect(res.headers.get('location')).toBe('http://localhost:3000/login');
     const cookies = res.headers.getSetCookie().join('\n');
     expect(cookies).toMatch(/wt_at=;/);
     expect(cookies).toMatch(/wt_rt=;/);

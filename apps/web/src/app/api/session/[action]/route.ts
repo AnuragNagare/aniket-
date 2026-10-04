@@ -62,6 +62,21 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ action: st
   return res;
 }
 
+/**
+ * GET /api/session/expired — where Server Components send the browser when the API rejects
+ * the session (user removed, token revoked). Clearing the cookies here is what stops
+ * /login → (proxy sees a cookie) → /app → 401 → /login from looping forever.
+ */
+export async function GET(req: NextRequest, ctx: { params: Promise<{ action: string }> }) {
+  const { action } = await ctx.params;
+  if (action !== 'expired') {
+    return NextResponse.json(errorBody('NOT_FOUND', 'Not found.'), { status: 404 });
+  }
+  const res = NextResponse.redirect(new URL('/login', req.url));
+  clearSessionCookies(res.cookies);
+  return res;
+}
+
 /** "Remember me" defaults to on; only an explicit `remember: false` makes it session-only. */
 function wantsToBeRemembered(rawBody: string): boolean {
   try {
