@@ -104,6 +104,58 @@ describe('session route', () => {
     expect(cookies).toMatch(/wt_rt=;/);
   });
 
+  it('refuses EMPLOYEE accounts on the admin web, revokes the token and sets no cookies', async () => {
+    const employeeTokens = { ...tokens, user: { ...tokens.user, role: 'EMPLOYEE' } };
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(Response.json(employeeTokens))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+    const res = await call('login', { email: 'r@a.in', password: 'x' });
+    expect(res.status).toBe(403);
+    expect((await res.json()).error).toEqual({
+      code: 'USE_MOBILE_APP',
+      message: 'This sign-in is for company admins. Employees sign in on the Work Trail app.',
+      details: {},
+    });
+    expect(res.headers.getSetCookie()).toHaveLength(0);
+    expect(fetchMock.mock.calls[1]![0]).toMatch(/\/auth\/logout$/);
+  });
+
+  it('forgot-password passes the 204 straight through', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response(null, { status: 204 }));
+    const res = await call('forgot-password', { email: 'r@a.in' });
+    expect(res.status).toBe(204);
+    expect(fetchMock.mock.calls[0]![0]).toMatch(/\/auth\/forgot-password$/);
+    expect(res.headers.getSetCookie()).toHaveLength(0);
+  });
+
+  it('reset-password passes API errors straight through', async () => {
+    const err = {
+      error: { code: 'RESET_LINK_INVALID', message: 'This reset link has expired.', details: {} },
+    };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json(err, { status: 400 }));
+    const res = await call('reset-password', { token: 't'.repeat(43), password: 'x' });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual(err);
+  });
+
+  it('accept-invite forwards name+password to the token URL and sets no cookies', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(Response.json({ ...tokens, user: { ...tokens.user, role: 'EMPLOYEE' } }));
+    const res = await call('accept-invite', { token: 'tok_123', name: 'Ravi', password: 'StrongPass1' });
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(url).toMatch(/\/employees\/invitations\/tok_123\/accept$/);
+    expect(JSON.parse(String((init as RequestInit).body))).toEqual({
+      name: 'Ravi',
+      password: 'StrongPass1',
+    });
+    expect(await res.json()).toEqual({ user: { name: 'Rahul', email: 'r@a.in' } });
+    expect(res.headers.getSetCookie()).toHaveLength(0);
+  });
+
   it('unknown action is 404', async () => {
     expect((await call('nope')).status).toBe(404);
   });
