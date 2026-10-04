@@ -5,9 +5,11 @@ import type { EmployeeListResponse } from '@worktrail/types';
 import { Card } from '@/components/ui/card';
 import { EmployeeTable } from '@/components/employees/employee-table';
 import { EmployeesToolbar } from '@/components/employees/employees-toolbar';
+import { ResendInviteButton } from '@/components/employees/resend-invite-button';
 import { Pagination } from '@/components/employees/pagination';
 import { parseEmployeesQuery, toApiSearch } from '@/lib/employees-query';
 import { serverApi } from '@/lib/server-api';
+import { resendInvite } from './actions';
 
 export const metadata: Metadata = { title: 'Employees · Work Trail' };
 
@@ -34,6 +36,9 @@ export default async function EmployeesPage({ searchParams }: PageProps<'/app/em
         <EmployeeTable
           items={data.items}
           filtered={query.query !== '' || query.status !== 'ALL'}
+          pendingAction={(e) => (
+            <ResendInviteButton employeeId={e.id} name={e.name} action={resendInvite} />
+          )}
         />
         <Pagination query={query} pageSize={data.pageSize} total={data.total} />
       </Card>
