@@ -5,6 +5,7 @@ import { AuthController } from './controllers/auth.controller.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { RolesGuard } from './guards/roles.guard.js';
 import { AuthService } from './services/auth.service.js';
+import { PasswordResetService } from './services/password-reset.service.js';
 import { TokensService } from './services/tokens.service.js';
 
 /**
@@ -17,6 +18,7 @@ import { TokensService } from './services/tokens.service.js';
   providers: [
     AuthService,
     TokensService,
+    PasswordResetService,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],

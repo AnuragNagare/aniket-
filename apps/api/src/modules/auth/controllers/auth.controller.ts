@@ -3,15 +3,20 @@ import { Throttle } from '@nestjs/throttler';
 import {
   type AdminSignupInput,
   AdminSignupSchema,
+  type ForgotPasswordInput,
+  ForgotPasswordSchema,
   type LoginInput,
   LoginSchema,
   type RefreshInput,
   RefreshSchema,
+  type ResetPasswordInput,
+  ResetPasswordSchema,
 } from '@worktrail/types';
 import { ZodBody } from '../../../common/pipes/zod-body.pipe.js';
 import { CurrentAuth } from '../decorators/current-auth.decorator.js';
 import { Public } from '../decorators/public.decorator.js';
 import { AuthService } from '../services/auth.service.js';
+import { PasswordResetService } from '../services/password-reset.service.js';
 import { TokensService } from '../services/tokens.service.js';
 import type { AuthContext } from '../types/auth-context.js';
 
@@ -25,6 +30,7 @@ export class AuthController {
   constructor(
     private readonly auth: AuthService,
     private readonly tokens: TokensService,
+    private readonly passwordReset: PasswordResetService,
   ) {}
 
   @Public()
@@ -54,6 +60,22 @@ export class AuthController {
   @HttpCode(204)
   async logout(@Body(new ZodBody(RefreshSchema)) body: RefreshInput) {
     await this.tokens.revoke(body.refreshToken);
+  }
+
+  @Public()
+  @Throttle(AUTH_LIMIT)
+  @Post('forgot-password')
+  @HttpCode(204)
+  async forgotPassword(@Body(new ZodBody(ForgotPasswordSchema)) body: ForgotPasswordInput) {
+    await this.passwordReset.request(body.email);
+  }
+
+  @Public()
+  @Throttle(AUTH_LIMIT)
+  @Post('reset-password')
+  @HttpCode(204)
+  async resetPassword(@Body(new ZodBody(ResetPasswordSchema)) body: ResetPasswordInput) {
+    await this.passwordReset.reset(body.token, body.password);
   }
 
   @Get('me')
