@@ -4,6 +4,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from './config/config.module.js';
 import { DatabaseModule } from './database/database.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
+import { EmployeesModule } from './modules/employees/employees.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 
 @Module({
@@ -14,6 +15,7 @@ import { HealthModule } from './modules/health/health.module.js';
       { ttl: 60_000, limit: process.env.NODE_ENV === 'test' ? 10_000 : 120 },
     ]),
     AuthModule,
+    EmployeesModule,
     HealthModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
