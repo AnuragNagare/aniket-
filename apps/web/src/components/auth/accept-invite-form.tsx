@@ -47,7 +47,7 @@ export function AcceptInviteForm({ token, preview }: Props) {
   if (joined) {
     return (
       <div className="space-y-3">
-        <h2 className="text-2xl">You&apos;re in, {joined.name}</h2>
+        <h1 className="text-[32px] leading-[1.15]">You&apos;re in, {joined.name}</h1>
         <p className="flex gap-3 rounded-input bg-brand-50 p-4 text-ink-900">
           <Smartphone className="mt-0.5 size-5 shrink-0 text-brand-500" aria-hidden />
           <span>
@@ -60,17 +60,28 @@ export function AcceptInviteForm({ token, preview }: Props) {
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-4">
-      <Field label="Your name" htmlFor="name" error={errors.name?.message}>
-        <Input id="name" icon={User} autoComplete="name" {...register('name')} />
-      </Field>
-      <Field label="Create a password" htmlFor="password" error={errors.password?.message} hint="At least 8 characters">
-        <PasswordInput id="password" autoComplete="new-password" {...register('password')} />
-      </Field>
-      <FormAlert message={formError} />
-      <Button type="submit" trailingArrow loading={isSubmitting}>
-        Join {preview.companyName}
-      </Button>
-    </form>
+    <>
+      <h1 className="text-[32px] leading-[1.15]">Join {preview.companyName}</h1>
+      <p className="mb-8 mt-1 text-ink-500">
+        Set a password for {preview.email}. You&apos;ll use it to sign in on the Work Trail app.
+      </p>
+      <form onSubmit={onSubmit} noValidate className="space-y-4">
+        <Field label="Your name" htmlFor="name" error={errors.name?.message}>
+          <Input id="name" icon={User} autoComplete="name" {...register('name')} />
+        </Field>
+        <Field
+          label="Create a password"
+          htmlFor="password"
+          error={errors.password?.message}
+          hint="At least 8 characters"
+        >
+          <PasswordInput id="password" autoComplete="new-password" {...register('password')} />
+        </Field>
+        <FormAlert message={formError} />
+        <Button type="submit" trailingArrow loading={isSubmitting}>
+          Join {preview.companyName}
+        </Button>
+      </form>
+    </>
   );
 }

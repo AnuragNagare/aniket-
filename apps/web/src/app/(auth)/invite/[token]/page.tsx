@@ -13,18 +13,11 @@ export default async function InvitePage({ params }: PageProps<'/invite/[token]'
   );
   return (
     <>
-      <AuthPanel variant="login" />
+      <AuthPanel variant="join" />
       <section className="px-6 py-8 sm:px-14 sm:py-10">
         <div className="mx-auto mt-16 max-w-[400px]">
           {result.ok ? (
-            <>
-              <h1 className="text-[32px] leading-[1.15]">Join {result.data.companyName}</h1>
-              <p className="mb-8 mt-1 text-ink-500">
-                Set a password for {result.data.email}. You&apos;ll use it to sign in on the Work
-                Trail app.
-              </p>
-              <AcceptInviteForm token={token} preview={result.data} />
-            </>
+            <AcceptInviteForm token={token} preview={result.data} />
           ) : (
             <>
               <h1 className="text-[32px] leading-[1.15]">This invite link doesn&apos;t work</h1>

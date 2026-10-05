@@ -80,10 +80,13 @@ describe('AcceptInviteForm', () => {
       Response.json({ user: { name: 'Ravi Kumar', email: 'ravi@example.com' } }),
     );
     render(<AcceptInviteForm token="tok" preview={preview} />);
+    expect(screen.getByRole('heading', { name: 'Join Acme Services' })).toBeInTheDocument();
     expect(screen.getByLabelText('Your name')).toHaveValue('Ravi Kumar');
     await userEvent.type(screen.getByLabelText('Create a password'), 'StrongPass1');
     await userEvent.click(screen.getByRole('button', { name: /join acme services/i }));
     expect(await screen.findByText("You're in, Ravi Kumar")).toBeInTheDocument();
+    // The "set a password" heading would contradict the success message, so it goes away.
+    expect(screen.queryByRole('heading', { name: 'Join Acme Services' })).toBeNull();
     expect(screen.getByText(/sign in on the Work Trail app with ravi@example.com/i)).toBeInTheDocument();
   });
 

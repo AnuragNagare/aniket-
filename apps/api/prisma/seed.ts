@@ -149,6 +149,7 @@ async function main() {
   if (!password) throw new Error('Set SEED_ADMIN_PASSWORD in .env before seeding.');
 
   await removeExistingDemo();
+  const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
 
   const company = await prisma.company.create({ data: { name: COMPANY_NAME } });
   await prisma.user.create({
@@ -158,19 +159,27 @@ async function main() {
       name: 'Rahul Sharma',
       email: ADMIN_EMAIL,
       phone: '+919800000001',
-      passwordHash: await argon2.hash(password, { type: argon2.argon2id }),
+      passwordHash,
     },
   });
 
   const today = new Date();
   for (const [i, e] of EMPLOYEES.entries()) {
+    // Every demo employee has already accepted their invite, so they can sign in on the app.
+    const email = `${e.name.split(' ')[0]!.toLowerCase()}@demo.worktrail.in`;
+    const phone = `+9198000001${10 + i}`;
+    const user = await prisma.user.create({
+      data: { companyId: company.id, role: 'EMPLOYEE', name: e.name, email, phone, passwordHash },
+    });
     const employee = await prisma.employee.create({
       data: {
         companyId: company.id,
+        userId: user.id,
         name: e.name,
+        email,
         designation: e.designation,
         employeeCode: `FT-${101 + i}`,
-        phone: `+9198000001${10 + i}`,
+        phone,
       },
     });
     const common = { companyId: company.id, employeeId: employee.id, route: e.route, startHour: 9 };
@@ -190,7 +199,9 @@ async function main() {
     });
   }
 
-  console.log(`Seeded "${COMPANY_NAME}". Sign in as ${ADMIN_EMAIL} with SEED_ADMIN_PASSWORD.`);
+  console.log(
+    `Seeded "${COMPANY_NAME}". Admin: ${ADMIN_EMAIL}; employees: amit@, neha@, rohit@, pooja@, vikram@demo.worktrail.in. All use SEED_ADMIN_PASSWORD.`,
+  );
 }
 
 main()

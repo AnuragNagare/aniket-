@@ -42,6 +42,17 @@ describe('EmployeeTable', () => {
     expect(screen.queryByRole('button', { name: 'Resend Amit Kumar' })).toBeNull();
   });
 
+  it('offers no invite link for someone without an email, and says why', () => {
+    render(
+      <EmployeeTable
+        items={[{ ...base, id: '4', name: 'No Email', email: null, account: 'INVITED' }]}
+        pendingAction={(e) => <button type="button">Resend {e.name}</button>}
+      />,
+    );
+    expect(screen.queryByRole('button', { name: 'Resend No Email' })).toBeNull();
+    expect(screen.getByText('Needs an email to invite')).toBeInTheDocument();
+  });
+
   it('invites action when the team is empty', () => {
     render(<EmployeeTable items={[]} />);
     expect(

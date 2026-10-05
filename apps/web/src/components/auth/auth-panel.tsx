@@ -8,34 +8,55 @@ const FEATURES = [
   { icon: BarChart3, title: 'Clear reports', body: 'Daily, weekly and monthly PDFs' },
 ];
 
+const COPY = {
+  signup: {
+    headline: (
+      <>
+        Track work.
+        <br />
+        Get real
+        <br />
+        <span className="text-brand-500">visibility.</span>
+      </>
+    ),
+    body: 'Manage your field team, track work sessions, view locations and get clear reports, all in one place.',
+  },
+  login: {
+    headline: (
+      <>
+        Welcome
+        <br />
+        <span className="text-brand-500">back!</span>
+      </>
+    ),
+    body: 'Sign in to manage your team, track work and generate reports.',
+  },
+  join: {
+    headline: (
+      <>
+        Welcome to
+        <br />
+        <span className="text-brand-500">Work Trail.</span>
+      </>
+    ),
+    body: 'Start work, share updates from the field and keep a clear record of your day.',
+  },
+} as const;
+
+type Variant = keyof typeof COPY;
+
 /** Left half of the auth card: brand, headline and illustration (collapses on small screens). */
-export function AuthPanel({ variant }: { variant: 'signup' | 'login' }) {
+export function AuthPanel({ variant }: { variant: Variant }) {
   const signup = variant === 'signup';
   return (
     <aside className="relative flex flex-col overflow-hidden bg-auth-panel p-8 max-[900px]:p-6">
       <Logo />
       <div className="mt-12 max-[900px]:hidden">
         <p className="font-display text-[40px] font-bold leading-[1.08] text-ink-900">
-          {signup ? (
-            <>
-              Track work.
-              <br />
-              Get real
-              <br />
-              <span className="text-brand-500">visibility.</span>
-            </>
-          ) : (
-            <>
-              Welcome
-              <br />
-              <span className="text-brand-500">back!</span>
-            </>
-          )}
+          {COPY[variant].headline}
         </p>
         <p className="mt-4 max-w-[32ch] text-[15px] leading-relaxed text-ink-700">
-          {signup
-            ? 'Manage your field team, track work sessions, view locations and get clear reports, all in one place.'
-            : 'Sign in to manage your team, track work and generate reports.'}
+          {COPY[variant].body}
         </p>
       </div>
 

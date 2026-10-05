@@ -71,7 +71,11 @@ export function EmployeeTable({ items, filtered, pendingAction }: Props) {
               <StatusChip employee={e} />
             </td>
             <td className="px-5 py-3 text-right">
-              {e.account === 'INVITED' ? pendingAction?.(e) : null}
+              {e.account !== 'INVITED' ? null : e.email ? (
+                pendingAction?.(e)
+              ) : (
+                <span className="text-xs text-ink-500">Needs an email to invite</span>
+              )}
             </td>
           </tr>
         ))}
