@@ -14,6 +14,9 @@ import { InvitationsModule } from './modules/invitations/invitations.module.js';
 import { MeModule } from './modules/me/me.module.js';
 import { SessionsModule } from './modules/sessions/sessions.module.js';
 import { UpdatesModule } from './modules/updates/updates.module.js';
+import { QueueModule } from './common/queue/queue.module.js';
+import { AiModule } from './common/ai/ai.module.js';
+import { SummariesModule } from './modules/summaries/summaries.module.js';
 
 @Module({
   imports: [
@@ -33,6 +36,9 @@ import { UpdatesModule } from './modules/updates/updates.module.js';
     MeModule,
     DashboardModule,
     HealthModule,
+    QueueModule,
+    AiModule,
+    SummariesModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

@@ -1,8 +1,10 @@
+import { vi } from 'vitest';
 import request from 'supertest';
 import type { INestApplication } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { createApp } from '../../src/bootstrap.js';
+import { JOB_QUEUE } from '../../src/common/queue/job-queue.js';
 import { resetDb } from '../helpers/db.js';
 import { employeeAs, signupAs } from '../helpers/auth.js';
 
@@ -54,12 +56,24 @@ describe('POST /updates', () => {
   });
 
   it('a repeated send stores one update and returns the original', async () => {
+    const queue = app.get(JOB_QUEUE);
+    const queueSpy = vi.spyOn(queue, 'add');
     const e = await atWork();
     const body = update(e.sessionId);
+    queueSpy.mockClear();
     const first = await send(e.token, body).expect(201);
+    expect(queueSpy).toHaveBeenCalledTimes(1);
     const again = await send(e.token, body).expect(200);
-    expect(again.body).toEqual({ update: first.body.update, duplicate: true });
+    expect(again.body).toMatchObject({
+      duplicate: true,
+      update: {
+        id: first.body.update.id,
+        clientUpdateId: first.body.update.clientUpdateId,
+        text: first.body.update.text,
+      },
+    });
     expect(await prisma.workUpdate.count()).toBe(1);
+    expect(queueSpy).toHaveBeenCalledTimes(1);
   });
 
   it('accepts an update written during the session but delivered after End work', async () => {

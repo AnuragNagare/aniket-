@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Prisma, type WorkUpdate } from '@prisma/client';
 import type { CreateUpdateInput, CreateUpdateResponse, UpdateCategory, WorkUpdateDto } from '@worktrail/types';
 import { AppError } from '../../../common/errors/app-error.js';
 import { PrismaService } from '../../../database/prisma.service.js';
+import { JOB_QUEUE, type JobQueue } from '../../../common/queue/job-queue.js';
 import type { AuthContext } from '../../auth/types/auth-context.js';
 import { CurrentEmployeeService } from '../../sessions/services/current-employee.service.js';
 
@@ -27,9 +28,12 @@ export const toUpdateDto = (u: WorkUpdate): WorkUpdateDto => ({
 /** Work updates from the field. Idempotent per (employee, clientUpdateId). */
 @Injectable()
 export class UpdatesService {
+  private readonly log = new Logger(UpdatesService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly currentEmployee: CurrentEmployeeService,
+    @Inject(JOB_QUEUE) private readonly queue: JobQueue,
   ) {}
 
   async create(auth: AuthContext, input: CreateUpdateInput): Promise<CreateUpdateResponse> {
@@ -66,6 +70,9 @@ export class UpdatesService {
           submittedAt,
         },
       });
+      void this.queue
+        .add('update.summarise', { updateId: created.id }, { jobId: `update.summarise:${created.id}` })
+        .catch((err) => this.log.warn(`Could not queue summary for ${created.id}: ${String(err)}`));
       return { update: toUpdateDto(created), duplicate: false };
     } catch (e) {
       // Two copies of the same update arrived at the same moment.

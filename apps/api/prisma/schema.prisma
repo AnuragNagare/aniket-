@@ -60,6 +60,7 @@ enum PeriodType {
   DAILY
   WEEKLY
   MONTHLY
+  CUSTOM
 }
 
 enum ReportStatus {
@@ -106,6 +107,7 @@ model User {
   employee            Employee?
   refreshTokens       RefreshToken[]
   passwordResetTokens PasswordResetToken[]
+  requestedReports    Report[]
 
   @@index([companyId])
   @@map("users")
@@ -244,10 +246,12 @@ model WorkUpdate {
   category         String?       @db.VarChar(64)
   submittedAt      DateTime      @default(now()) @map("submitted_at") @db.Timestamptz
   receivedAt       DateTime      @default(now()) @map("received_at") @db.Timestamptz
-  summaryStatus    SummaryStatus @default(QUEUED) @map("summary_status")
-  aiSummary        String?       @map("ai_summary")
-  aiStructuredData Json?         @map("ai_structured_data")
-  modelName        String?       @map("model_name") @db.VarChar(120)
+  summaryStatus      SummaryStatus @default(QUEUED) @map("summary_status")
+  aiSummary          String?       @map("ai_summary")
+  aiStructuredData   Json?         @map("ai_structured_data")
+  modelName          String?       @map("model_name") @db.VarChar(120)
+  summaryError       String?       @map("summary_error") @db.VarChar(120)
+  summaryGeneratedAt DateTime?     @map("summary_generated_at") @db.Timestamptz
 
   company  Company     @relation(fields: [companyId], references: [id])
   employee Employee    @relation(fields: [employeeId], references: [id])
@@ -271,30 +275,43 @@ model GeneratedSummary {
   content              String?
   structuredData       Json?         @map("structured_data")
   status               SummaryStatus @default(QUEUED)
+  modelName            String?       @map("model_name") @db.VarChar(120)
+  failureReason        String?       @map("failure_reason") @db.VarChar(120)
+  requestedAt          DateTime      @default(now()) @map("requested_at") @db.Timestamptz
   generatedAt          DateTime?     @map("generated_at") @db.Timestamptz
 
   company  Company  @relation(fields: [companyId], references: [id])
   employee Employee @relation(fields: [employeeId], references: [id])
+  reports  Report[]
 
   @@unique([employeeId, periodType, periodStart, periodEnd])
+  @@index([companyId, employeeId])
   @@map("generated_summaries")
 }
 
 model Report {
-  id                String       @id @default(uuid()) @db.Uuid
-  companyId         String       @map("company_id") @db.Uuid
-  employeeId        String       @map("employee_id") @db.Uuid
-  requestedByUserId String       @map("requested_by_user_id") @db.Uuid
-  periodStart       DateTime     @map("period_start") @db.Timestamptz
-  periodEnd         DateTime     @map("period_end") @db.Timestamptz
-  status            ReportStatus @default(QUEUED)
-  storageKey        String?      @map("storage_key")
-  generatedAt       DateTime?    @map("generated_at") @db.Timestamptz
-  expiresAt         DateTime?    @map("expires_at") @db.Timestamptz
+  id                String            @id @default(uuid()) @db.Uuid
+  companyId         String            @map("company_id") @db.Uuid
+  employeeId        String            @map("employee_id") @db.Uuid
+  requestedByUserId String            @map("requested_by_user_id") @db.Uuid
+  periodStart       DateTime          @map("period_start") @db.Timestamptz
+  periodEnd         DateTime          @map("period_end") @db.Timestamptz
+  status            ReportStatus      @default(QUEUED)
+  storageKey        String?           @map("storage_key")
+  failureReason     String?           @map("failure_reason") @db.VarChar(120)
+  includeMap        Boolean           @default(false) @map("include_map")
+  byteSize          Int?              @map("byte_size")
+  summaryId         String?           @map("summary_id") @db.Uuid
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  generatedAt       DateTime?         @map("generated_at") @db.Timestamptz
+  expiresAt         DateTime?         @map("expires_at") @db.Timestamptz
 
-  company  Company  @relation(fields: [companyId], references: [id])
-  employee Employee @relation(fields: [employeeId], references: [id])
+  company     Company           @relation(fields: [companyId], references: [id])
+  employee    Employee          @relation(fields: [employeeId], references: [id])
+  requestedBy User              @relation(fields: [requestedByUserId], references: [id])
+  summary     GeneratedSummary? @relation(fields: [summaryId], references: [id])
 
+  @@index([companyId, createdAt])
   @@map("reports")
 }
 
