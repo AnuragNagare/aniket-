@@ -13,7 +13,15 @@ export const PRESET_LABELS: Record<Preset, string> = {
 
 type Range = { from: string; to: string };
 export type ParsedRange = Range & { preset: Preset; label: string; error: string | null };
-type SearchParams = Record<string, string | string[] | undefined>;
+export type SearchParams = Record<string, string | string[] | undefined>;
+
+export const rangeQuery = (r: Pick<ParsedRange, 'preset' | 'from' | 'to'>) =>
+  r.preset === 'custom' ? `?range=custom&from=${r.from}&to=${r.to}` : `?range=${r.preset}`;
+
+export async function pageRange(searchParams: Promise<SearchParams>, timezone: string) {
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: timezone }).format(new Date()); // YYYY-MM-DD
+  return { range: parseRange(await searchParams, today), today };
+}
 
 const shift = (date: string, days: number) => {
   const d = new Date(`${date}T00:00:00Z`);
@@ -58,6 +66,3 @@ export function parseRange(sp: SearchParams, today: string): ParsedRange {
   const { from, to } = parsed.data;
   return { preset, from, to, label: `${fmt(from, false)} – ${fmt(to, true)}`, error: null };
 }
-
-export const rangeQuery = (r: Pick<ParsedRange, 'preset' | 'from' | 'to'>) =>
-  r.preset === 'custom' ? `?range=custom&from=${r.from}&to=${r.to}` : `?range=${r.preset}`;

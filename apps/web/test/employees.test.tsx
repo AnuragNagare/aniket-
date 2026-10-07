@@ -72,6 +72,11 @@ describe('EmployeeTable', () => {
       '/app/employees',
     );
   });
+
+  it('links employee names to the employee page', () => {
+    render(<EmployeeTable items={[base]} />);
+    expect(screen.getByRole('link', { name: 'Amit Kumar' })).toHaveAttribute('href', '/app/employees/1');
+  });
 });
 
 describe('Pagination', () => {

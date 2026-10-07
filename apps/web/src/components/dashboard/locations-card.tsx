@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import type { DashboardResponse } from '@worktrail/types';
 import { timeIn } from '@/lib/format';
 import { Avatar } from './avatar';
@@ -46,7 +47,9 @@ export function LocationsCard({ locations, timezone }: Props) {
               <li key={l.employeeId} className="flex items-center gap-3">
                 <Avatar name={l.name} size={32} />
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-ink-900">{l.name}</p>
+                  <Link href={`/app/employees/${l.employeeId}`} className="truncate block text-sm font-semibold text-ink-900 hover:text-brand-700">
+                    {l.name}
+                  </Link>
                   <p className="text-xs text-ink-500">{lastSeen(l, timezone)}</p>
                 </div>
               </li>

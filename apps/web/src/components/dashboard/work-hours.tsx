@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { DashboardResponse } from '@worktrail/types';
 import { formatMinutes } from '@/lib/format';
 import { Avatar } from './avatar';
@@ -22,7 +23,9 @@ export function WorkHours({ items }: { items: DashboardResponse['workHours'] }) 
                 <Avatar name={w.name} size={32} />
                 <div className="flex-1">
                   <div className="flex justify-between text-sm">
-                    <span className="font-medium text-ink-900">{w.name}</span>
+                    <Link href={`/app/employees/${w.employeeId}`} className="font-medium text-ink-900 hover:text-brand-700">
+                      {w.name}
+                    </Link>
                     <span className="text-ink-500">{formatMinutes(w.minutes)}</span>
                   </div>
                   <div

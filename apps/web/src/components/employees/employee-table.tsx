@@ -60,7 +60,9 @@ export function EmployeeTable({ items, filtered, pendingAction }: Props) {
               <span className="flex items-center gap-3">
                 <Avatar name={e.name} size={32} />
                 <span>
-                  <span className="block font-semibold text-ink-900">{e.name}</span>
+                  <Link href={`/app/employees/${e.id}`} className="block font-semibold text-ink-900 hover:text-brand-700">
+                    {e.name}
+                  </Link>
                   <span className="block text-xs text-ink-500">{e.designation ?? 'No designation'}</span>
                 </span>
               </span>

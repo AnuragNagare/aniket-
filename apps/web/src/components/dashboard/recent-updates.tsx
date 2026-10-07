@@ -1,4 +1,5 @@
-import type { DashboardResponse } from '@worktrail/types';
+import Link from 'next/link';
+import { UPDATE_CATEGORY_LABELS, type DashboardResponse } from '@worktrail/types';
 import { timeIn } from '@/lib/format';
 import { Avatar } from './avatar';
 import { SectionCard } from './section-card';
@@ -18,8 +19,18 @@ export function RecentUpdates({ items, timezone }: Props) {
             <li key={u.id} className="flex gap-3 py-3">
               <Avatar name={u.employeeName} />
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-ink-900">{u.employeeName}</p>
-                <p className="text-xs text-ink-500">{timeIn(u.submittedAt, timezone)}</p>
+                <Link href={`/app/employees/${u.employeeId}`} className="text-sm font-semibold text-ink-900 hover:text-brand-700">
+                  {u.employeeName}
+                </Link>
+                <p className="flex items-center gap-2 text-xs text-ink-500">
+                  {timeIn(u.submittedAt, timezone)}
+                  {u.category ? (
+                    <span className="rounded-full bg-brand-50 px-2 py-0.5 font-medium text-brand-700">
+                      {UPDATE_CATEGORY_LABELS[u.category]}
+                    </span>
+                  ) : null}
+                  {u.inputMethod === 'VOICE' ? <span className="rounded-full bg-canvas px-2 py-0.5">Voice</span> : null}
+                </p>
                 <p className="mt-1 line-clamp-2 text-sm text-ink-700">{u.text}</p>
               </div>
             </li>

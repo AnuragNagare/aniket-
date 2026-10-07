@@ -1,6 +1,6 @@
 import 'server-only';
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import type { ApiErrorBody } from '@worktrail/types';
 import { apiUrl } from './api-url';
 import type { MutationResult } from './mutation-result';
@@ -26,6 +26,7 @@ export async function serverApi<T>(path: string): Promise<T> {
   });
   // The API rejected the session: clear the cookies on the way out, or the proxy loops.
   if (res.status === 401) redirect('/api/session/expired');
+  if (res.status === 404) notFound();
   if (!res.ok) throw new ApiError(res.status, await res.json().catch(() => null));
   return (await res.json()) as T;
 }

@@ -40,6 +40,8 @@ const data: DashboardResponse = {
       employeeName: 'Amit Kumar',
       text: 'Completed site visit.',
       submittedAt: '2026-10-04T04:48:00Z',
+      category: 'SITE_VISIT',
+      inputMethod: 'VOICE',
     },
   ],
   workHours: [
@@ -79,6 +81,12 @@ describe('dashboard sections', () => {
     expect(screen.getByText('Completed site visit.')).toBeInTheDocument();
   });
 
+  it('recent updates show the category and whether the update was spoken', () => {
+    render(<RecentUpdates items={data.recentUpdates} timezone="Asia/Kolkata" />);
+    expect(screen.getByText('Site visit')).toBeInTheDocument();
+    expect(screen.getByText('Voice')).toBeInTheDocument();
+  });
+
   it('work hours bars are relative to the longest day', () => {
     render(<WorkHours items={data.workHours} />);
     expect(screen.getByRole('progressbar', { name: 'Amit Kumar' })).toHaveAttribute(
@@ -105,5 +113,15 @@ describe('dashboard sections', () => {
     expect(
       screen.getByText('No updates yet. They appear here as soon as your team submits them.'),
     ).toBeInTheDocument();
+  });
+
+  it('recent update names link to the employee page', () => {
+    render(<RecentUpdates items={data.recentUpdates} timezone="Asia/Kolkata" />);
+    expect(screen.getByRole('link', { name: 'Amit Kumar' })).toHaveAttribute('href', '/app/employees/a');
+  });
+
+  it('work hours names link to the employee page', () => {
+    render(<WorkHours items={data.workHours} />);
+    expect(screen.getByRole('link', { name: 'Amit Kumar' })).toHaveAttribute('href', '/app/employees/a');
   });
 });
