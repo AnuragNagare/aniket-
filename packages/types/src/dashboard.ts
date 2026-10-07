@@ -1,3 +1,5 @@
+import type { UpdateCategory } from './updates.js';
+
 export type DashboardResponse = {
   date: string; // YYYY-MM-DD in company timezone
   timezone: string;
@@ -23,6 +25,8 @@ export type DashboardResponse = {
     employeeName: string;
     text: string;
     submittedAt: string;
+    category: UpdateCategory | null;
+    inputMethod: 'TYPED' | 'VOICE';
   }>;
   workHours: Array<{ employeeId: string; name: string; minutes: number }>;
 };
