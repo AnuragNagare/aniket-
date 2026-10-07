@@ -28,6 +28,7 @@
     "db:seed": "node scripts/with-env.mjs tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
     "@nestjs/common": "^12.0.1",
     "@nestjs/core": "^12.0.1",
     "@nestjs/jwt": "^12.0.2",
