@@ -67,6 +67,8 @@ export class DashboardService {
             submittedAt: true,
             category: true,
             inputMethod: true,
+            summaryStatus: true,
+            aiSummary: true,
             employee: { select: { name: true } },
           },
         }),
@@ -131,7 +133,7 @@ export class DashboardService {
         submittedAt: u.submittedAt.toISOString(),
         category: (u.category as UpdateCategory | null) ?? null,
         inputMethod: u.inputMethod,
-        summary: (u as { aiSummary?: string | null }).aiSummary ?? null,
+        summary: u.summaryStatus === 'COMPLETE' ? u.aiSummary : null,
       })),
       workHours,
     };

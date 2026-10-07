@@ -1,0 +1,72 @@
+{
+  "name": "@worktrail/mobile",
+  "version": "0.1.0",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "android:dev": "expo run:android",
+    "android:apk": "expo prebuild --platform android && cd android && gradlew.bat assembleRelease",
+    "test": "jest",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint src/ test/"
+  },
+  "dependencies": {
+    "@expo-google-fonts/barlow": "^0.2.3",
+    "@expo-google-fonts/barlow-semi-condensed": "^0.2.3",
+    "@react-native-community/netinfo": "^12.0.1",
+    "@tanstack/react-query": "^5.67.2",
+    "@worktrail/types": "workspace:*",
+    "@worktrail/ui": "workspace:*",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
+    "expo": "~57.0.26",
+    "expo-battery": "^57.0.0",
+    "expo-build-properties": "^57.0.22",
+    "expo-constants": "~57.0.20",
+    "expo-crypto": "^57.0.0",
+    "expo-font": "~57.0.4",
+    "expo-intent-launcher": "^57.0.1",
+    "expo-linear-gradient": "^57.0.0",
+    "expo-location": "^57.0.0",
+    "expo-router": "~57.0.24",
+    "expo-secure-store": "^57.0.0",
+    "expo-speech-recognition": "^57.1.0",
+    "expo-splash-screen": "~57.0.9",
+    "expo-sqlite": "^57.0.3",
+    "expo-status-bar": "~57.0.1",
+    "expo-task-manager": "^57.0.21",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-svg": "^15.11.0",
+    "zod": "^4.0.0-alpha.1",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@testing-library/react-native": "^13.0.1",
+    "@types/jest": "^29.5.14",
+    "@types/react": "~19.2.2",
+    "eslint-config-expo": "~57.0.2",
+    "jest": "^29.7.0",
+    "jest-expo": "^57.0.0",
+    "oxlint": "^1.58.0",
+    "typescript": "~5.9.0"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "setupFiles": [
+      "<rootDir>/test/setup.ts"
+    ],
+    "testMatch": [
+      "<rootDir>/test/**/*.test.{ts,tsx}"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(?:\\.pnpm/[^/]+/node_modules/)?((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|expo-router|react-navigation|@react-navigation/.*|react-native-svg|@worktrail/.*))"
+    ]
+  },
+  "private": true
+}

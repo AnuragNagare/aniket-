@@ -1,0 +1,66 @@
+{
+  "expo": {
+    "name": "Work Trail",
+    "slug": "work-trail",
+    "scheme": "worktrail",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/images/icon.png",
+    "splash": {
+      "backgroundColor": "#FBF8F5",
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain"
+    },
+    "android": {
+      "package": "in.worktrail.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#FE5A0C"
+      },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION",
+        "POST_NOTIFICATIONS"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-font",
+      "expo-sqlite",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Work Trail records your location when you start and end work, so your company can see where your work day began and finished.",
+          "locationAlwaysAndWhenInUsePermission": "Work Trail records your location about every 5 minutes while you are at work, even when the screen is off. Nothing is recorded after you tap End work.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true,
+            "minSdkVersion": 29
+          }
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Work Trail uses the microphone only while you hold the speak button, to turn your words into update text you can edit.",
+          "speechRecognitionPermission": "Work Trail turns your speech into text for your work update.",
+          "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

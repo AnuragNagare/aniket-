@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { EmployeeSessionsResponse, EmployeeSummary, WorkUpdateDto } from '@worktrail/types';
+import { AI_LABEL } from '@worktrail/types';
 
 const replace = vi.fn();
 vi.mock('next/navigation', () => ({
@@ -66,6 +67,71 @@ describe('employee detail', () => {
   it('updates list invites a wider period when empty', () => {
     render(<UpdatesList items={[]} timezone={TZ} />);
     expect(screen.getByText('No updates in this period. Try a longer period, such as This week.')).toBeInTheDocument();
+  });
+
+  it('updates list renders COMPLETE AI summary with follow-ups, label, and hides empty lists', () => {
+    const items: WorkUpdateDto[] = [
+      {
+        id: 'u1',
+        clientUpdateId: 'c1',
+        sessionId: 's1',
+        text: 'Installed machine at Sai Kripa. Needs sensor replacement.',
+        inputMethod: 'TYPED',
+        category: 'INSTALLATION',
+        submittedAt: '2026-10-05T05:30:00.000Z',
+        summaryStatus: 'COMPLETE',
+        aiSummary: {
+          summary: 'Machine installed. Sensor replacement needed.',
+          activities: ['Installation'],
+          issues: [],
+          followUps: ['Replace sensor'],
+          confidence: 'HIGH',
+        },
+      },
+    ];
+    render(<UpdatesList items={items} timezone={TZ} />);
+    expect(screen.getByText('Machine installed. Sensor replacement needed.')).toBeInTheDocument();
+    expect(screen.getByText('Follow-ups')).toBeInTheDocument();
+    expect(screen.getByText('Replace sensor')).toBeInTheDocument();
+    expect(screen.queryByText('Issues')).toBeNull();
+    expect(screen.getByTitle(AI_LABEL)).toBeInTheDocument();
+  });
+
+  it('updates list shows "Summarising…" when QUEUED/PROCESSING', () => {
+    const items: WorkUpdateDto[] = [
+      {
+        id: 'u1',
+        clientUpdateId: 'c1',
+        sessionId: 's1',
+        text: 'Checking clinic status.',
+        inputMethod: 'TYPED',
+        category: 'SITE_VISIT',
+        submittedAt: '2026-10-05T05:30:00.000Z',
+        summaryStatus: 'QUEUED',
+        aiSummary: null,
+      },
+    ];
+    render(<UpdatesList items={items} timezone={TZ} />);
+    expect(screen.getByText('Summarising…')).toBeInTheDocument();
+  });
+
+  it('updates list shows "Summary unavailable" when FAILED and retains raw text', () => {
+    const items: WorkUpdateDto[] = [
+      {
+        id: 'u1',
+        clientUpdateId: 'c1',
+        sessionId: 's1',
+        text: 'Power outage at client site.',
+        inputMethod: 'TYPED',
+        category: 'SITE_VISIT',
+        submittedAt: '2026-10-05T05:30:00.000Z',
+        summaryStatus: 'FAILED',
+        aiSummary: null,
+      },
+    ];
+    render(<UpdatesList items={items} timezone={TZ} />);
+    expect(screen.getByText('Summary unavailable')).toBeInTheDocument();
+    expect(screen.getByText('Power outage at client site.')).toBeInTheDocument();
   });
 
   it('close dialog defaults to the last location time and shows server errors', async () => {

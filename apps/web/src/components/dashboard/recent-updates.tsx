@@ -32,6 +32,7 @@ export function RecentUpdates({ items, timezone }: Props) {
                   {u.inputMethod === 'VOICE' ? <span className="rounded-full bg-canvas px-2 py-0.5">Voice</span> : null}
                 </p>
                 <p className="mt-1 line-clamp-2 text-sm text-ink-700">{u.text}</p>
+                {u.summary ? <p className="mt-1 line-clamp-1 text-xs text-ink-500">AI: {u.summary}</p> : null}
               </div>
             </li>
           ))}

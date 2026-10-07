@@ -52,6 +52,41 @@ const UPDATES = [
   'Stock audit at Thane outlet completed. Display shelf damaged, reported to area manager.',
 ];
 
+const UPDATE_SUMMARIES: Record<string, { summary: string; activities: string[]; issues: string[]; followUps: string[] }> = {
+  'Met purchase manager at ABC Traders. Discussed next quarter order of 40 units. Follow-up call on Friday.': {
+    summary: 'Met ABC Traders manager to discuss 40-unit order for next quarter.',
+    activities: ['Client meeting with purchase manager'],
+    issues: [],
+    followUps: ['Follow-up call on Friday'],
+  },
+  'Completed installation at Sai Kripa Clinic. One sensor needs replacement, raised request with store.': {
+    summary: 'Installation completed at Sai Kripa Clinic. Sensor replacement requested.',
+    activities: ['Installation at Sai Kripa Clinic'],
+    issues: ['One sensor needs replacement'],
+    followUps: ['Raised replacement request with store'],
+  },
+  'Site visit at Andheri warehouse done. Photos shared with client. Awaiting confirmation on layout.': {
+    summary: 'Site visit completed at Andheri warehouse. Layout confirmation pending from client.',
+    activities: ['Site visit at Andheri warehouse', 'Shared photos with client'],
+    issues: [],
+    followUps: ['Awaiting layout confirmation from client'],
+  },
+  'Follow-up call with Mehta Hardware done. They want a revised quote with delivery included.': {
+    summary: 'Follow-up call completed with Mehta Hardware regarding revised delivery quote.',
+    activities: ['Follow-up call with Mehta Hardware'],
+    issues: [],
+    followUps: ['Provide revised quote including delivery'],
+  },
+  'Stock audit at Thane outlet completed. Display shelf damaged, reported to area manager.': {
+    summary: 'Stock audit completed at Thane outlet. Damaged display shelf reported.',
+    activities: ['Stock audit at Thane outlet'],
+    issues: ['Damaged display shelf'],
+    followUps: ['Reported issue to area manager'],
+  },
+};
+
+let updateSeedIndex = 0;
+
 /** Evenly spaced points along a multi-stop route. */
 function interpolate(route: Stop[], steps: number): Stop[] {
   const out: Stop[] = [];
@@ -123,6 +158,32 @@ async function seedSession(opts: {
   await prisma.locationPoint.createMany({ data: points });
 
   const CATEGORIES = ['CLIENT_MEETING', 'INSTALLATION', 'SITE_VISIT', 'SALES_CALL', 'SERVICE_REPAIR'] as const;
+  const submittedAt = new Date(Math.min(start.getTime() + 95 * 60_000, end.getTime()));
+
+  const idx = updateSeedIndex++;
+  const parsed = UPDATE_SUMMARIES[opts.updateText];
+  let summaryStatus: 'COMPLETE' | 'FAILED' | 'QUEUED' = 'QUEUED';
+  let aiSummary: string | null = null;
+  let aiStructuredData: any = null;
+  let summaryError: string | null = null;
+  let modelName: string | null = null;
+  let summaryGeneratedAt: Date | null = null;
+
+  if (idx % 3 === 0 || idx % 3 === 1) {
+    summaryStatus = 'COMPLETE';
+    aiSummary = parsed ? parsed.summary : opts.updateText.slice(0, 100);
+    aiStructuredData = parsed
+      ? { ...parsed, confidence: 'HIGH' }
+      : { summary: opts.updateText.slice(0, 100), activities: [], issues: [], followUps: [], confidence: 'HIGH' };
+    modelName = 'seed';
+    summaryGeneratedAt = submittedAt;
+  } else if (idx === 2) {
+    summaryStatus = 'FAILED';
+    summaryError = 'INVALID_OUTPUT';
+  } else {
+    summaryStatus = 'QUEUED';
+  }
+
   await prisma.workUpdate.create({
     data: {
       companyId: opts.companyId,
@@ -132,7 +193,13 @@ async function seedSession(opts: {
       text: opts.updateText,
       inputMethod: 'VOICE',
       category: CATEGORIES[opts.startHour % CATEGORIES.length],
-      submittedAt: new Date(Math.min(start.getTime() + 95 * 60_000, end.getTime())),
+      submittedAt,
+      summaryStatus,
+      aiSummary,
+      aiStructuredData,
+      summaryError,
+      modelName,
+      summaryGeneratedAt,
     },
   });
 }

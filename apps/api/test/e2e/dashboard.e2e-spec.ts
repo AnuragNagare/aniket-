@@ -65,6 +65,8 @@ describe('GET /dashboard', () => {
         inputMethod: 'VOICE',
         category: 'SITE_VISIT',
         submittedAt: new Date(start.getTime() + 4 * 3600_000),
+        summaryStatus: 'COMPLETE',
+        aiSummary: 'Met client at ABC Traders.',
       },
     });
 
@@ -98,6 +100,7 @@ describe('GET /dashboard', () => {
       text: 'Met client at ABC Traders.',
       category: 'SITE_VISIT',
       inputMethod: 'VOICE',
+      summary: 'Met client at ABC Traders.',
     });
     expect(res.body.workHours).toEqual([{ employeeId: amit.id, name: 'Amit Kumar', minutes: 120 }]);
     expect(JSON.stringify(res.body)).not.toContain('Other Co Person');

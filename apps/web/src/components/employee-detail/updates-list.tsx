@@ -1,5 +1,6 @@
 import { formatInTimeZone } from 'date-fns-tz';
 import { UPDATE_CATEGORY_LABELS, type WorkUpdateDto } from '@worktrail/types';
+import { UpdateSummary } from '../ai/update-summary';
 
 export function UpdatesList({ items, timezone }: { items: WorkUpdateDto[]; timezone: string }) {
   if (items.length === 0) {
@@ -19,6 +20,7 @@ export function UpdatesList({ items, timezone }: { items: WorkUpdateDto[]; timez
             {u.inputMethod === 'VOICE' ? <span className="rounded-full bg-canvas px-2 py-0.5">Voice</span> : null}
           </p>
           <p className="mt-1.5 max-w-[75ch] whitespace-pre-line text-[15px] leading-relaxed text-ink-900">{u.text}</p>
+          <UpdateSummary update={u} />
         </li>
       ))}
     </ul>

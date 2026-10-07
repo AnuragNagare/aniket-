@@ -68,5 +68,11 @@ export function useHistory(days = 14) {
       const queued = await (await getUpdateQueue()).list();
       return groupHistory(h, queued, dates).filter((d) => d.sessions.length || d.updates.length);
     },
+    refetchInterval: (q) =>
+      q.state.data?.some((d) =>
+        d.updates.some((u) => u.summaryStatus === 'QUEUED' || u.summaryStatus === 'PROCESSING'),
+      )
+        ? 20_000
+        : false,
   });
 }

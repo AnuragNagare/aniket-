@@ -125,4 +125,24 @@ describe('dashboard sections', () => {
     render(<WorkHours items={data.workHours} />);
     expect(screen.getByRole('link', { name: 'Amit Kumar' })).toHaveAttribute('href', '/app/employees/a');
   });
+
+  it('recent update with summary shows it under the text, and null shows nothing extra', () => {
+    const withSummary = [
+      {
+        ...data.recentUpdates[0],
+        id: 'u1',
+        text: 'Installed unit at Sai Kripa.',
+        summary: 'Unit installed successfully.',
+      },
+      {
+        ...data.recentUpdates[0],
+        id: 'u2',
+        text: 'Routine check.',
+        summary: null,
+      },
+    ];
+    render(<RecentUpdates items={withSummary} timezone="Asia/Kolkata" />);
+    expect(screen.getByText('AI: Unit installed successfully.')).toBeInTheDocument();
+    expect(screen.queryByText(/AI: Routine check/)).toBeNull();
+  });
 });
