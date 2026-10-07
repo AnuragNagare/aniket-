@@ -74,6 +74,7 @@ async function seedSession(opts: {
   minutes: number;
   active: boolean;
   updateText: string;
+  hasGap?: boolean;
 }) {
   const now = new Date();
   const dayStr = formatInTimeZone(opts.day, TZ, 'yyyy-MM-dd');
@@ -98,7 +99,7 @@ async function seedSession(opts: {
   });
 
   const count = Math.max(2, Math.floor((end.getTime() - start.getTime()) / POINT_INTERVAL_MS) + 1);
-  const points: Prisma.LocationPointCreateManyInput[] = interpolate(opts.route, count).map(
+  let points: Prisma.LocationPointCreateManyInput[] = interpolate(opts.route, count).map(
     ([lat, lng], i) => ({
       companyId: opts.companyId,
       employeeId: opts.employeeId,
@@ -111,6 +112,14 @@ async function seedSession(opts: {
       capturedAt: new Date(start.getTime() + i * POINT_INTERVAL_MS),
     }),
   );
+  if (opts.hasGap) {
+    const gapStart = start.getTime() + 240 * 60_000;
+    const gapEnd = start.getTime() + 280 * 60_000;
+    points = points.filter((p) => {
+      const t = new Date(p.capturedAt as Date).getTime();
+      return t < gapStart || t > gapEnd;
+    });
+  }
   await prisma.locationPoint.createMany({ data: points });
 
   const CATEGORIES = ['CLIENT_MEETING', 'INSTALLATION', 'SITE_VISIT', 'SALES_CALL', 'SERVICE_REPAIR'] as const;
@@ -186,11 +195,29 @@ async function main() {
       },
     });
     const common = { companyId: company.id, employeeId: employee.id, route: e.route, startHour: 9 };
+    if (i === 4) {
+      // Vikram has one session left running from 2 days ago at 09:00 IST
+      const day2Str = formatInTimeZone(subDays(today, 2), TZ, 'yyyy-MM-dd');
+      const start2 = fromZonedTime(`${day2Str}T09:00:00`, TZ);
+      await prisma.workSession.create({
+        data: {
+          companyId: company.id,
+          employeeId: employee.id,
+          status: 'ACTIVE',
+          startedAtServer: start2,
+          startedAtDevice: start2,
+          endedAtServer: null,
+          endedAtDevice: null,
+          totalMinutes: null,
+        },
+      });
+    }
     await seedSession({
       ...common,
       day: subDays(today, 1),
       minutes: 420 + i * 15,
       active: false,
+      hasGap: i === 4,
       updateText: UPDATES[(i + 1) % UPDATES.length]!,
     });
     await seedSession({

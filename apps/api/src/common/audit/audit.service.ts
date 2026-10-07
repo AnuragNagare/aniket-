@@ -6,13 +6,14 @@ export type AuditAction =
   | 'invitation.created'
   | 'invitation.resent'
   | 'invitation.accepted'
-  | 'password.reset';
+  | 'password.reset'
+  | 'session.closed_by_admin';
 
 export type AuditEntry = {
   companyId: string;
   actorUserId?: string | null;
   action: AuditAction;
-  entityType: 'invitation' | 'user';
+  entityType: 'invitation' | 'user' | 'session';
   entityId?: string | null;
   metadata?: Prisma.InputJsonValue;
 };
