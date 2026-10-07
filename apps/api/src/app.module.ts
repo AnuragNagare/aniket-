@@ -7,9 +7,13 @@ import { ConfigModule } from './config/config.module.js';
 import { DatabaseModule } from './database/database.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { DashboardModule } from './modules/dashboard/dashboard.module.js';
+import { EmployeeActivityModule } from './modules/employee-activity/employee-activity.module.js';
 import { EmployeesModule } from './modules/employees/employees.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { InvitationsModule } from './modules/invitations/invitations.module.js';
+import { MeModule } from './modules/me/me.module.js';
+import { SessionsModule } from './modules/sessions/sessions.module.js';
+import { UpdatesModule } from './modules/updates/updates.module.js';
 
 @Module({
   imports: [
@@ -21,8 +25,12 @@ import { InvitationsModule } from './modules/invitations/invitations.module.js';
       { ttl: 60_000, limit: process.env.NODE_ENV === 'test' ? 10_000 : 120 },
     ]),
     AuthModule,
+    EmployeeActivityModule,
     EmployeesModule,
     InvitationsModule,
+    SessionsModule,
+    UpdatesModule,
+    MeModule,
     DashboardModule,
     HealthModule,
   ],

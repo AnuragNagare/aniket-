@@ -113,13 +113,16 @@ async function seedSession(opts: {
   );
   await prisma.locationPoint.createMany({ data: points });
 
+  const CATEGORIES = ['CLIENT_MEETING', 'INSTALLATION', 'SITE_VISIT', 'SALES_CALL', 'SERVICE_REPAIR'] as const;
   await prisma.workUpdate.create({
     data: {
       companyId: opts.companyId,
       employeeId: opts.employeeId,
       sessionId: session.id,
+      clientUpdateId: randomUUID(),
       text: opts.updateText,
       inputMethod: 'VOICE',
+      category: CATEGORIES[opts.startHour % CATEGORIES.length],
       submittedAt: new Date(Math.min(start.getTime() + 95 * 60_000, end.getTime())),
     },
   });

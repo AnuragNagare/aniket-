@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
-import type { EmployeeListItem, EmployeeListResponse, EmployeeStatus } from '@worktrail/types';
+import type { EmployeeDetail, EmployeeListItem, EmployeeListResponse, EmployeeStatus } from '@worktrail/types';
 import { AppError } from '../../../common/errors/app-error.js';
 import { PrismaService } from '../../../database/prisma.service.js';
 
@@ -23,9 +23,17 @@ const select = {
   sessions: { where: { status: 'ACTIVE' as const }, select: { id: true }, take: 1 },
 } satisfies Prisma.EmployeeSelect;
 
-type Row = Prisma.EmployeeGetPayload<{ select: typeof select }>;
+const detailSelect = {
+  ...select,
+  phone: true,
+  createdAt: true,
+  sessions: { where: { status: 'ACTIVE' as const }, select: { id: true, startedAtServer: true }, take: 1 },
+} satisfies Prisma.EmployeeSelect;
 
-const toItem = (r: Row): EmployeeListItem => ({
+type Row = Prisma.EmployeeGetPayload<{ select: typeof select }>;
+type DetailRow = Prisma.EmployeeGetPayload<{ select: typeof detailSelect }>;
+
+const toItem = (r: Row | DetailRow): EmployeeListItem => ({
   id: r.id,
   name: r.name,
   designation: r.designation,
@@ -59,12 +67,19 @@ export class EmployeesService {
     return { items: rows.map(toItem), page: q.page, pageSize: q.pageSize, total };
   }
 
-  async get(companyId: string, id: string): Promise<EmployeeListItem> {
+  async get(companyId: string, id: string): Promise<EmployeeDetail> {
     // Another company's id and a garbage id look identical: no hint that the record exists.
     const notFound = new AppError(404, 'NOT_FOUND', 'Employee not found.');
     if (!UUID.test(id)) throw notFound;
-    const row = await this.prisma.employee.findFirst({ where: { id, companyId }, select });
+    const row = await this.prisma.employee.findFirst({ where: { id, companyId }, select: detailSelect });
     if (!row) throw notFound;
-    return toItem(row);
+    const last = await this.prisma.locationPoint.findFirst({ where: { employeeId: row.id }, orderBy: { capturedAt: 'desc' }, select: { capturedAt: true } });
+    return {
+      ...toItem(row),
+      phone: row.phone,
+      joinedAt: row.createdAt.toISOString(),
+      workingSince: row.sessions[0]?.startedAtServer.toISOString() ?? null,
+      lastSeenAt: last?.capturedAt.toISOString() ?? null,
+    };
   }
 }

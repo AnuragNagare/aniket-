@@ -60,8 +60,10 @@ describe('GET /dashboard', () => {
         companyId: cid,
         employeeId: amit.id,
         sessionId: s.id,
+        clientUpdateId: '6f1c2b1e-3a51-4d5e-9b7a-1c2d3e4f5a6b',
         text: 'Met client at ABC Traders.',
-        inputMethod: 'TYPED',
+        inputMethod: 'VOICE',
+        category: 'SITE_VISIT',
         submittedAt: new Date(start.getTime() + 4 * 3600_000),
       },
     });
@@ -94,6 +96,8 @@ describe('GET /dashboard', () => {
     expect(res.body.recentUpdates[0]).toMatchObject({
       employeeName: 'Amit Kumar',
       text: 'Met client at ABC Traders.',
+      category: 'SITE_VISIT',
+      inputMethod: 'VOICE',
     });
     expect(res.body.workHours).toEqual([{ employeeId: amit.id, name: 'Amit Kumar', minutes: 120 }]);
     expect(JSON.stringify(res.body)).not.toContain('Other Co Person');

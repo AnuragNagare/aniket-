@@ -238,10 +238,12 @@ model WorkUpdate {
   companyId        String        @map("company_id") @db.Uuid
   employeeId       String        @map("employee_id") @db.Uuid
   sessionId        String        @map("session_id") @db.Uuid
+  clientUpdateId   String        @map("client_update_id") @db.Uuid
   text             String
   inputMethod      InputMethod   @map("input_method")
   category         String?       @db.VarChar(64)
   submittedAt      DateTime      @default(now()) @map("submitted_at") @db.Timestamptz
+  receivedAt       DateTime      @default(now()) @map("received_at") @db.Timestamptz
   summaryStatus    SummaryStatus @default(QUEUED) @map("summary_status")
   aiSummary        String?       @map("ai_summary")
   aiStructuredData Json?         @map("ai_structured_data")
@@ -251,6 +253,7 @@ model WorkUpdate {
   employee Employee    @relation(fields: [employeeId], references: [id])
   session  WorkSession @relation(fields: [sessionId], references: [id])
 
+  @@unique([employeeId, clientUpdateId])
   @@index([companyId, submittedAt])
   @@index([employeeId, submittedAt])
   @@map("work_updates")

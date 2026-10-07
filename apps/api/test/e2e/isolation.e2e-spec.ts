@@ -45,6 +45,22 @@ describe('organisation isolation', () => {
     expect(res.body.error.code).toBe('NOT_FOUND');
   });
 
+  it('detail includes joinedAt, phone, workingSince and lastSeenAt', async () => {
+    const a = await signupAs(app);
+    const emp = await makeEmployee(prisma, a.user.companyId, { name: 'Asha', phone: '+919876543210' });
+    const res = await http()
+      .get(`/api/v1/employees/${emp.id}`)
+      .set('Authorization', `Bearer ${a.token}`)
+      .expect(200);
+    expect(res.body).toHaveProperty('joinedAt');
+    expect(res.body).toMatchObject({
+      name: 'Asha',
+      phone: '+919876543210',
+      workingSince: null,
+      lastSeenAt: null,
+    });
+  });
+
   it('returns 404 (not 500) for a malformed id', async () => {
     const a = await signupAs(app);
     await http()

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { DashboardResponse } from '@worktrail/types';
+import type { DashboardResponse, UpdateCategory } from '@worktrail/types';
 import { AppError } from '../../../common/errors/app-error.js';
 import {
   dayBounds,
@@ -65,6 +65,8 @@ export class DashboardService {
             employeeId: true,
             text: true,
             submittedAt: true,
+            category: true,
+            inputMethod: true,
             employee: { select: { name: true } },
           },
         }),
@@ -127,6 +129,8 @@ export class DashboardService {
         employeeName: u.employee.name,
         text: u.text,
         submittedAt: u.submittedAt.toISOString(),
+        category: (u.category as UpdateCategory | null) ?? null,
+        inputMethod: u.inputMethod,
       })),
       workHours,
     };
