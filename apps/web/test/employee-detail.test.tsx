@@ -56,7 +56,7 @@ describe('employee detail', () => {
   });
 
   it('updates list shows category, voice and full text', () => {
-    const items: WorkUpdateDto[] = [{ id: 'u1', clientUpdateId: 'c1', sessionId: 's1', text: 'Completed installation. One sensor needs replacement.', inputMethod: 'VOICE', category: 'INSTALLATION', submittedAt: '2026-10-05T05:30:00.000Z', summaryStatus: 'QUEUED' }];
+    const items: WorkUpdateDto[] = [{ id: 'u1', clientUpdateId: 'c1', sessionId: 's1', text: 'Completed installation. One sensor needs replacement.', inputMethod: 'VOICE', category: 'INSTALLATION', submittedAt: '2026-10-05T05:30:00.000Z', summaryStatus: 'QUEUED', aiSummary: null }];
     render(<UpdatesList items={items} timezone={TZ} />);
     expect(screen.getByText('Installation')).toBeInTheDocument();
     expect(screen.getByText('Voice')).toBeInTheDocument();

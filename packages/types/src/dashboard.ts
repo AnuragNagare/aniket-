@@ -27,6 +27,7 @@ export type DashboardResponse = {
     submittedAt: string;
     category: UpdateCategory | null;
     inputMethod: 'TYPED' | 'VOICE';
+    summary: string | null;
   }>;
   workHours: Array<{ employeeId: string; name: string; minutes: number }>;
 };

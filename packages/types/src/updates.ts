@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { UpdateSummary } from './ai.js';
 
 export const UPDATE_CATEGORIES = [
   'SITE_VISIT',
@@ -56,6 +57,7 @@ export type WorkUpdateDto = {
   category: UpdateCategory | null;
   submittedAt: string;
   summaryStatus: SummaryStatus;
+  aiSummary: UpdateSummary | null;
 };
 
 export type CreateUpdateResponse = { update: WorkUpdateDto; duplicate: boolean };

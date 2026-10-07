@@ -18,6 +18,10 @@ export const toUpdateDto = (u: WorkUpdate): WorkUpdateDto => ({
   category: (u.category as UpdateCategory | null) ?? null,
   submittedAt: u.submittedAt.toISOString(),
   summaryStatus: u.summaryStatus,
+  aiSummary:
+    u.summaryStatus === 'COMPLETE' && (u as { aiStructuredData?: unknown }).aiStructuredData
+      ? ((u as { aiStructuredData?: unknown }).aiStructuredData as WorkUpdateDto['aiSummary'])
+      : null,
 });
 
 /** Work updates from the field. Idempotent per (employee, clientUpdateId). */

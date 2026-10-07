@@ -131,6 +131,7 @@ export class DashboardService {
         submittedAt: u.submittedAt.toISOString(),
         category: (u.category as UpdateCategory | null) ?? null,
         inputMethod: u.inputMethod,
+        summary: (u as { aiSummary?: string | null }).aiSummary ?? null,
       })),
       workHours,
     };

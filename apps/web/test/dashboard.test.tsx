@@ -42,6 +42,7 @@ const data: DashboardResponse = {
       submittedAt: '2026-10-04T04:48:00Z',
       category: 'SITE_VISIT',
       inputMethod: 'VOICE',
+      summary: null,
     },
   ],
   workHours: [
