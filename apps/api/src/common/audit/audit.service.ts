@@ -7,13 +7,16 @@ export type AuditAction =
   | 'invitation.resent'
   | 'invitation.accepted'
   | 'password.reset'
-  | 'session.closed_by_admin';
+  | 'session.closed_by_admin'
+  | 'summary.requested'
+  | 'report.requested'
+  | 'report.downloaded';
 
 export type AuditEntry = {
   companyId: string;
   actorUserId?: string | null;
   action: AuditAction;
-  entityType: 'invitation' | 'user' | 'session';
+  entityType: 'invitation' | 'user' | 'session' | 'summary' | 'report';
   entityId?: string | null;
   metadata?: Prisma.InputJsonValue;
 };

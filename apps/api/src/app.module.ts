@@ -16,6 +16,7 @@ import { SessionsModule } from './modules/sessions/sessions.module.js';
 import { UpdatesModule } from './modules/updates/updates.module.js';
 import { QueueModule } from './common/queue/queue.module.js';
 import { AiModule } from './common/ai/ai.module.js';
+import { StorageModule } from './common/storage/storage.module.js';
 import { SummariesModule } from './modules/summaries/summaries.module.js';
 
 @Module({
@@ -38,6 +39,7 @@ import { SummariesModule } from './modules/summaries/summaries.module.js';
     HealthModule,
     QueueModule,
     AiModule,
+    StorageModule,
     SummariesModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

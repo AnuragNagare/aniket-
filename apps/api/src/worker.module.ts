@@ -4,6 +4,7 @@ import { ConfigModule } from './config/config.module.js';
 import { DatabaseModule } from './database/database.module.js';
 import { QueueModule } from './common/queue/queue.module.js';
 import { AiModule } from './common/ai/ai.module.js';
+import { StorageModule } from './common/storage/storage.module.js';
 import { SummariesModule } from './modules/summaries/summaries.module.js';
 
 @Module({
@@ -13,6 +14,7 @@ import { SummariesModule } from './modules/summaries/summaries.module.js';
     AuditModule,
     QueueModule,
     AiModule,
+    StorageModule,
     SummariesModule,
   ],
 })
