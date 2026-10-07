@@ -8,8 +8,13 @@ coverage/
 !.env.example
 *.pem
 .expo/
+apps/mobile/.env
+apps/mobile/android/
+apps/mobile/*.apk
+apps/mobile/android/app/release/
 # local tooling
 .claude/
 .serena/
 .superpowers/
 *.tsbuildinfo
+apps/api/storage/
