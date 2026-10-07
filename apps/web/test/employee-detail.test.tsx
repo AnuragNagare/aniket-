@@ -15,6 +15,7 @@ import { OverviewCards } from '@/components/employee-detail/overview-cards';
 import { HoursTable } from '@/components/employee-detail/hours-table';
 import { UpdatesList } from '@/components/employee-detail/updates-list';
 import { CloseSessionDialog } from '@/components/employee-detail/close-session-dialog';
+import { TrailSummary } from '@/components/employee-detail/trail-summary';
 
 const TZ = 'Asia/Kolkata';
 
@@ -74,5 +75,37 @@ describe('employee detail', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Close session' }));
     expect(action).toHaveBeenCalledWith('e1', 's2', '2026-10-04T12:00:00.000Z');
     expect(await screen.findByRole('alert')).toHaveTextContent('Choose an end time between the start of the session and now.');
+  });
+
+  it('trail summary counts locations, distance and gaps, and warns about accuracy and truncation', () => {
+    const t = {
+      timezone: TZ,
+      sessions: [],
+      points: [],
+      truncated: true,
+      gaps: [{ sessionId: 's1', from: '2026-10-05T07:40:00.000Z', to: '2026-10-05T08:22:00.000Z', minutes: 42 }],
+      stats: { pointCount: 28, lowAccuracyCount: 9, gapCount: 1, distanceKm: 3.4 },
+    };
+    render(<TrailSummary trail={t as never} />);
+    expect(screen.getByText('28 locations · 3.4 km · 1 gap')).toBeInTheDocument();
+    expect(screen.getByText('Some locations are approximate (accuracy worse than 100 m).')).toBeInTheDocument();
+    expect(screen.getByText('Showing the first 5,000 locations. Choose a shorter period to see all of them.')).toBeInTheDocument();
+    expect(screen.getByText('No location for 42 min · 1:10 PM – 1:52 PM')).toBeInTheDocument();
+  });
+
+  it('trail summary explains an empty period', () => {
+    render(
+      <TrailSummary
+        trail={{
+          timezone: TZ,
+          sessions: [],
+          points: [],
+          gaps: [],
+          truncated: false,
+          stats: { pointCount: 0, lowAccuracyCount: 0, gapCount: 0, distanceKm: 0 },
+        }}
+      />,
+    );
+    expect(screen.getByText('No locations recorded in this period.')).toBeInTheDocument();
   });
 });
