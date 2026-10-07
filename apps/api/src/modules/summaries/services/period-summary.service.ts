@@ -237,8 +237,8 @@ export class PeriodSummaryService {
 
       const sessionCount = sessionsRes.sessions.length;
       const totalWorkMinutes = sessionsRes.totalMinutes;
-      const locationPointCount = trailRes.pointCount;
-      const dataGapCount = trailRes.gapCount;
+      const locationPointCount = trailRes.stats.pointCount;
+      const dataGapCount = trailRes.stats.gapCount;
       const leftRunning = sessionsRes.sessions.some((s) => s.leftRunning);
 
       const periodLabel =
@@ -252,7 +252,7 @@ export class PeriodSummaryService {
       const leftRunningNote = 'A work session was still open at the time of the report.';
       let droppedText = updates.length > 150;
 
-      let updateItems = updates.map((u) => ({
+      let updateItems: Array<{ submittedAt: string; text?: string; summary?: string }> = updates.map((u) => ({
         submittedAt: u.submittedAt.toISOString(),
         text: droppedText ? undefined : u.text.slice(0, 600),
         summary: u.aiSummary ?? undefined,
@@ -269,6 +269,7 @@ export class PeriodSummaryService {
         droppedText = true;
         updateItems = updates.map((u) => ({
           submittedAt: u.submittedAt.toISOString(),
+          text: undefined,
           summary: u.aiSummary ?? u.text.slice(0, 600),
         }));
         payloadStr = periodPayload({

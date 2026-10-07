@@ -4,6 +4,7 @@ import type { JobData, JobName } from './job-queue.js';
 import { PeriodSummaryService } from '../../modules/summaries/services/period-summary.service.js';
 import { SummarySweeperService } from '../../modules/summaries/services/summary-sweeper.service.js';
 import { UpdateSummaryService } from '../../modules/summaries/services/update-summary.service.js';
+import { ReportProcessor } from '../../modules/reports/services/report.processor.js';
 
 @Injectable()
 export class JobRouter {
@@ -31,8 +32,8 @@ export class JobRouter {
       }
       case 'report.generate': {
         const d = data as JobData['report.generate'];
-        const svc = this.moduleRef.get<{ process: (id: string, opts?: { finalAttempt?: boolean }) => Promise<void> }>('ReportProcessor', { strict: false });
-        if (svc) await svc.process(d.reportId, opts);
+        const svc = this.moduleRef.get(ReportProcessor, { strict: false });
+        await svc.process(d.reportId);
         break;
       }
       case 'maintenance.sweep': {

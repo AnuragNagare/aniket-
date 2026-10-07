@@ -27,7 +27,8 @@
     "db:reset": "node scripts/with-env.mjs prisma migrate reset --force --skip-seed",
     "db:seed": "node scripts/with-env.mjs tsx prisma/seed.ts",
     "worker": "node scripts/with-env.mjs node dist/worker.js",
-    "worker:dev": "node scripts/with-env.mjs tsx watch src/worker.ts"
+    "worker:dev": "node scripts/with-env.mjs tsx watch src/worker.ts",
+    "pdf:install": "playwright install chromium"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
@@ -45,6 +46,7 @@
     "date-fns-tz": "^3.2.0",
     "dotenv": "^18.0.5",
     "ioredis": "^6.0.0",
+    "playwright": "^1.63.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "zod": "^4.6.5"

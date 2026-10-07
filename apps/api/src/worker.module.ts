@@ -6,6 +6,7 @@ import { QueueModule } from './common/queue/queue.module.js';
 import { AiModule } from './common/ai/ai.module.js';
 import { StorageModule } from './common/storage/storage.module.js';
 import { SummariesModule } from './modules/summaries/summaries.module.js';
+import { ReportsModule } from './modules/reports/reports.module.js';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { SummariesModule } from './modules/summaries/summaries.module.js';
     AiModule,
     StorageModule,
     SummariesModule,
+    ReportsModule,
   ],
 })
 export class WorkerModule {}
