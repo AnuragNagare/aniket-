@@ -24,6 +24,7 @@ describe('employee detail', () => {
   it('tabs keep the chosen period and mark the current tab', () => {
     render(<TabNav id="e1" />);
     expect(screen.getByRole('link', { name: 'Map' })).toHaveAttribute('href', '/app/employees/e1/map?range=this-week');
+    expect(screen.getByRole('link', { name: 'Reports' })).toHaveAttribute('href', '/app/employees/e1/reports?range=this-week');
     expect(screen.getByRole('link', { name: 'Work hours' })).toHaveAttribute('aria-current', 'page');
   });
 

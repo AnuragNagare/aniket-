@@ -9,6 +9,7 @@ const TABS = [
   { slug: '/map', label: 'Map' },
   { slug: '/updates', label: 'Updates' },
   { slug: '/hours', label: 'Work hours' },
+  { slug: '/reports', label: 'Reports' },
 ];
 
 export function TabNav({ id }: { id: string }) {

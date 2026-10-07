@@ -32,6 +32,7 @@ async function refresh(refreshToken: string): Promise<AuthTokens | null> {
 export async function proxy(req: NextRequest) {
   const accessToken = req.cookies.get(ACCESS_COOKIE)?.value;
   const refreshToken = req.cookies.get(REFRESH_COOKIE)?.value;
+  const isApi = req.nextUrl.pathname.startsWith('/api/');
 
   if (AUTH_PAGES.has(req.nextUrl.pathname)) {
     return accessToken
@@ -40,11 +41,17 @@ export async function proxy(req: NextRequest) {
   }
 
   if (accessToken) return NextResponse.next();
-  if (!refreshToken) return NextResponse.redirect(new URL('/login', req.url));
+  if (!refreshToken) {
+    return isApi
+      ? new NextResponse('Please sign in again.', { status: 401 })
+      : NextResponse.redirect(new URL('/login', req.url));
+  }
 
   const tokens = await refresh(refreshToken);
   if (!tokens) {
-    const res = NextResponse.redirect(new URL('/login', req.url));
+    const res = isApi
+      ? new NextResponse('Please sign in again.', { status: 401 })
+      : NextResponse.redirect(new URL('/login', req.url));
     clearSessionCookies(res.cookies);
     return res;
   }
@@ -59,4 +66,4 @@ export async function proxy(req: NextRequest) {
   return res;
 }
 
-export const config = { matcher: ['/app/:path*', '/login', '/signup'] };
+export const config = { matcher: ['/app/:path*', '/api/reports/:path*', '/login', '/signup'] };
