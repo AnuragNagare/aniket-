@@ -56,9 +56,11 @@ describe('invitations (admin)', () => {
     expect(stored.tokenHash).not.toBe(token); // only the hash is stored
 
     expect(lastMailTo(app, 'ravi@example.com')?.text).toContain(res.body.inviteUrl);
-    expect(
-      await prisma.auditLog.count({ where: { action: 'invitation.created', actorUserId: a.user.id } }),
-    ).toBe(1);
+    const auditRow = await prisma.auditLog.findFirstOrThrow({
+      where: { action: 'invitation.created', actorUserId: a.user.id },
+    });
+    expect(auditRow.ip).toBeDefined();
+    expect(auditRow.userAgent).toBeDefined();
 
     const list = await http().get('/api/v1/employees').set('Authorization', `Bearer ${a.token}`).expect(200);
     expect(list.body.items[0]).toMatchObject({

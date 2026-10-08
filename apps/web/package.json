@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
+    "@sentry/nextjs": "^11.4.0",
     "@worktrail/types": "workspace:*",
     "@worktrail/ui": "workspace:*",
     "clsx": "^2.1.1",

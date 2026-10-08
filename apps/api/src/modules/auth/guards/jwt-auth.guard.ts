@@ -1,6 +1,8 @@
 import { type CanActivate, type ExecutionContext, Inject, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
+import { ClsServiceManager } from 'nestjs-cls';
+import { CLS_COMPANY_ID, CLS_USER_ID } from '../../../common/context/request-context.js';
 import { AppError } from '../../../common/errors/app-error.js';
 import { ENV, type Env } from '../../../config/env.js';
 import { IS_PUBLIC } from '../decorators/public.decorator.js';
@@ -34,6 +36,15 @@ export class JwtAuthGuard implements CanActivate {
         secret: this.env.JWT_ACCESS_SECRET,
       });
       req.auth = { userId: claims.sub, companyId: claims.cid, role: claims.role };
+      try {
+        const cls = ClsServiceManager.getClsService();
+        if (cls?.isActive()) {
+          cls.set(CLS_USER_ID, claims.sub);
+          cls.set(CLS_COMPANY_ID, claims.cid);
+        }
+      } catch {
+        // no-op if outside active CLS context
+      }
       return true;
     } catch {
       throw new AppError(401, 'TOKEN_EXPIRED', 'Your session has expired. Sign in again.');

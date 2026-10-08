@@ -21,6 +21,22 @@ export const EnvSchema = z
     AI_REPORT_MODEL: z.string().default('claude-opus-5-5'),
     REPORT_STORAGE_DIR: z.string().default('./storage/reports'),
     REPORT_TTL_DAYS: z.coerce.number().int().positive().default(30),
+    TRUST_PROXY: z
+      .preprocess((v) => (v === 'false' || v === false ? false : true), z.boolean())
+      .default(true),
+    SENTRY_DSN: z.string().optional(),
+    SENTRY_ENVIRONMENT: z.string().optional(),
+    STORAGE_DRIVER: z.enum(['local', 's3']).default('local'),
+    S3_ENDPOINT: z.string().optional(),
+    S3_BUCKET: z.string().optional(),
+    S3_ACCESS_KEY_ID: z.string().optional(),
+    S3_SECRET_ACCESS_KEY: z.string().optional(),
+    S3_REGION: z.string().default('auto'),
+    ALLOW_LOCAL_STORAGE: z
+      .preprocess((v) => (v === 'true' || v === true ? true : false), z.boolean())
+      .default(false),
+    EXPORT_TTL_DAYS: z.coerce.number().int().positive().default(7),
+    RETENTION_RUN_HOUR_IST: z.coerce.number().int().min(0).max(23).default(2),
   })
   .superRefine((data, ctx) => {
     if (data.QUEUE_DRIVER === 'bullmq' && !data.REDIS_URL) {
@@ -35,6 +51,27 @@ export const EnvSchema = z
         code: z.ZodIssueCode.custom,
         path: ['ANTHROPIC_API_KEY'],
         message: 'ANTHROPIC_API_KEY is required in production when AI is enabled',
+      });
+    }
+    if (data.NODE_ENV === 'production' && !data.SENTRY_DSN) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['SENTRY_DSN'],
+        message: 'SENTRY_DSN is required in production',
+      });
+    }
+    if (data.NODE_ENV === 'production' && data.STORAGE_DRIVER === 'local' && !data.ALLOW_LOCAL_STORAGE) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['STORAGE_DRIVER'],
+        message: 'STORAGE_DRIVER=local is not permitted in production without ALLOW_LOCAL_STORAGE=true',
+      });
+    }
+    if (data.STORAGE_DRIVER === 's3' && (!data.S3_BUCKET || !data.S3_ACCESS_KEY_ID || !data.S3_SECRET_ACCESS_KEY)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['STORAGE_DRIVER'],
+        message: 'S3_BUCKET, S3_ACCESS_KEY_ID, and S3_SECRET_ACCESS_KEY are required when STORAGE_DRIVER=s3',
       });
     }
   });

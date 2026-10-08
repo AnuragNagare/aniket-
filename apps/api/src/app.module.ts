@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { type MiddlewareConsumer, Module, type NestModule } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuditModule } from './common/audit/audit.module.js';
@@ -19,9 +19,12 @@ import { AiModule } from './common/ai/ai.module.js';
 import { StorageModule } from './common/storage/storage.module.js';
 import { SummariesModule } from './modules/summaries/summaries.module.js';
 import { ReportsModule } from './modules/reports/reports.module.js';
+import { createClsModule } from './common/context/request-context.js';
+import { RequestLoggerMiddleware } from './common/logging/request-logger.middleware.js';
 
 @Module({
   imports: [
+    createClsModule(),
     ConfigModule,
     DatabaseModule,
     AuditModule,
@@ -46,4 +49,8 @@ import { ReportsModule } from './modules/reports/reports.module.js';
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestLoggerMiddleware).forRoutes('*');
+  }
+}

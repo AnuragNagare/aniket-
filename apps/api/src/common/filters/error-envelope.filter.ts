@@ -5,6 +5,7 @@ import {
   HttpException,
   Logger,
 } from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
 import type { Response } from 'express';
 
 const CODES: Record<number, string> = {
@@ -55,6 +56,7 @@ export class ErrorEnvelopeFilter implements ExceptionFilter {
         .json({ error: { code: CODES[status] ?? 'ERROR', message, details: {} } });
     }
     this.logger.error(exception);
+    Sentry.captureException(exception);
     return res.status(500).json({
       error: {
         code: 'INTERNAL',

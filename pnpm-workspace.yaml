@@ -13,3 +13,4 @@ allowBuilds:
   sharp: false
   unrs-resolver: false
   msgpackr-extract: false
+  '@sentry/cli': true

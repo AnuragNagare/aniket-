@@ -87,6 +87,7 @@ model Company {
   summaries   GeneratedSummary[]
   reports     Report[]
   auditLogs   AuditLog[]
+  consentRecords ConsentRecord[]
 
   @@map("companies")
 }
@@ -150,17 +151,19 @@ model Employee {
   phone        String?  @db.VarChar(24)
   employeeCode String?  @map("employee_code") @db.VarChar(80)
   designation  String?  @db.VarChar(120)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  company     Company            @relation(fields: [companyId], references: [id])
-  user        User?              @relation(fields: [userId], references: [id])
-  invitations Invitation[]
-  sessions    WorkSession[]
-  points      LocationPoint[]
-  updates     WorkUpdate[]
-  summaries   GeneratedSummary[]
-  reports     Report[]
+  company        Company            @relation(fields: [companyId], references: [id])
+  user           User?              @relation(fields: [userId], references: [id])
+  invitations    Invitation[]
+  sessions       WorkSession[]
+  points         LocationPoint[]
+  updates        WorkUpdate[]
+  summaries      GeneratedSummary[]
+  reports        Report[]
+  consentRecords ConsentRecord[]
 
   @@unique([companyId, employeeCode])
   @@index([companyId])
@@ -324,9 +327,68 @@ model AuditLog {
   entityId    String?  @map("entity_id") @db.Uuid
   metadata    Json?
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  ip          String?  @db.VarChar(64)
+  userAgent   String?  @map("user_agent") @db.VarChar(255)
 
   company Company @relation(fields: [companyId], references: [id])
 
   @@index([companyId, createdAt])
+  @@index([companyId, action, createdAt])
   @@map("audit_logs")
 }
+
+model ConsentRecord {
+  id          String   @id @default(uuid()) @db.Uuid
+  companyId   String   @map("company_id") @db.Uuid
+  employeeId  String   @map("employee_id") @db.Uuid
+  version     String   @db.VarChar(32)
+  acceptedAt  DateTime @default(now()) @map("accepted_at") @db.Timestamptz
+  appVersion  String?  @map("app_version") @db.VarChar(32)
+  deviceModel String?  @map("device_model") @db.VarChar(80)
+  ip          String?  @db.VarChar(64)
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  company  Company  @relation(fields: [companyId], references: [id])
+
+  @@unique([employeeId, version])
+  @@map("consent_records")
+}
+
+enum DeletionRequestStatus {
+  OPEN
+  DONE
+  DISMISSED
+}
+
+model DeletionRequest {
+  id         String                @id @default(uuid()) @db.Uuid
+  companyId  String                @map("company_id") @db.Uuid
+  employeeId String                @map("employee_id") @db.Uuid
+  reason     String?               @db.VarChar(500)
+  status     DeletionRequestStatus @default(OPEN)
+  resolvedBy String?               @map("resolved_by") @db.Uuid
+  resolvedAt DateTime?             @map("resolved_at") @db.Timestamptz
+  note       String?               @db.VarChar(500)
+  createdAt  DateTime              @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([companyId, status])
+  @@map("deletion_requests")
+}
+
+model DataExport {
+  id                String       @id @default(uuid()) @db.Uuid
+  companyId         String       @map("company_id") @db.Uuid
+  employeeId        String       @map("employee_id") @db.Uuid
+  requestedByUserId String       @map("requested_by_user_id") @db.Uuid
+  status            ReportStatus @default(QUEUED)
+  storageKey        String?      @map("storage_key")
+  byteSize          Int?         @map("byte_size")
+  failureReason     String?      @map("failure_reason")
+  createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  generatedAt       DateTime?    @map("generated_at") @db.Timestamptz
+  expiresAt         DateTime?    @map("expires_at") @db.Timestamptz
+
+  @@index([companyId, createdAt])
+  @@map("data_exports")
+}
+
