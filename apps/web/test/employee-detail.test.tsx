@@ -17,10 +17,18 @@ import { HoursTable } from '@/components/employee-detail/hours-table';
 import { UpdatesList } from '@/components/employee-detail/updates-list';
 import { CloseSessionDialog } from '@/components/employee-detail/close-session-dialog';
 import { TrailSummary } from '@/components/employee-detail/trail-summary';
+import { ConsentLine } from '@/components/employee-detail/consent-line';
 
 const TZ = 'Asia/Kolkata';
 
 describe('employee detail', () => {
+  it('ConsentLine shows agreed date when consented, or unagreed message when not', () => {
+    const { rerender } = render(<ConsentLine consentedAt="2026-10-06T10:00:00.000Z" timezone="Asia/Kolkata" />);
+    expect(screen.getByText('Agreed to tracking on 6 Oct 2026')).toBeInTheDocument();
+
+    rerender(<ConsentLine consentedAt={null} />);
+    expect(screen.getByText('Has not agreed to tracking yet')).toBeInTheDocument();
+  });
   it('tabs keep the chosen period and mark the current tab', () => {
     render(<TabNav id="e1" />);
     expect(screen.getByRole('link', { name: 'Map' })).toHaveAttribute('href', '/app/employees/e1/map?range=this-week');

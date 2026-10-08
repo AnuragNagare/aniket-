@@ -19,6 +19,7 @@ import { AiModule } from './common/ai/ai.module.js';
 import { StorageModule } from './common/storage/storage.module.js';
 import { SummariesModule } from './modules/summaries/summaries.module.js';
 import { ReportsModule } from './modules/reports/reports.module.js';
+import { PrivacyModule } from './modules/privacy/privacy.module.js';
 import { DiscoveryModule } from '@nestjs/core';
 import { createClsModule } from './common/context/request-context.js';
 import { RequestLoggerMiddleware } from './common/logging/request-logger.middleware.js';
@@ -48,6 +49,7 @@ import { RequestLoggerMiddleware } from './common/logging/request-logger.middlew
     StorageModule,
     SummariesModule,
     ReportsModule,
+    PrivacyModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

@@ -25,7 +25,12 @@ export async function signupAs(app: INestApplication, overrides: Record<string, 
 }
 
 /** Creates an EMPLOYEE user with a linked employee record and signs them in. */
-export async function employeeAs(app: INestApplication, prisma: PrismaClient, companyId?: string) {
+export async function employeeAs(
+  app: INestApplication,
+  prisma: PrismaClient,
+  companyId?: string,
+  autoConsent = true,
+) {
   n += 1;
   const cid = companyId ?? (await signupAs(app)).user.companyId;
   const email = `emp${n}@field${n}.in`;
@@ -36,6 +41,15 @@ export async function employeeAs(app: INestApplication, prisma: PrismaClient, co
   const employee = await prisma.employee.create({
     data: { companyId: cid, userId: user.id, name: `Field ${n}`, email },
   });
+  if (autoConsent) {
+    await prisma.consentRecord.create({
+      data: {
+        companyId: cid,
+        employeeId: employee.id,
+        version: process.env.PRIVACY_NOTICE_VERSION_OVERRIDE || '2026-10-v1',
+      },
+    });
+  }
   const res = await request(app.getHttpServer())
     .post('/api/v1/auth/login')
     .send({ email, password: 'StrongPass1' })

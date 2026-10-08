@@ -19,6 +19,7 @@ import {
   timeLabel,
 } from '../../sessions/session-logic';
 import {
+  ConsentRequiredError,
   LocationOffError,
   NeedsPermissionError,
   useWorkSession,
@@ -68,6 +69,7 @@ export default function HomeScreen() {
       await work.start();
       void qc.invalidateQueries({ queryKey: TRACKING_STATUS_KEY });
     } catch (e) {
+      if (e instanceof ConsentRequiredError) return router.push('/permissions?step=notice');
       if (e instanceof NeedsPermissionError) return router.push('/permissions');
       if (e instanceof LocationOffError)
         return setMessage('Turn on location (GPS) on your phone, then tap Start work again.');

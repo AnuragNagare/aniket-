@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import type { EmployeeDetail } from '@worktrail/types';
 import { Avatar } from '@/components/dashboard/avatar';
 import { StatusChip } from '@/components/employees/status-chip';
+import { ConsentLine } from './consent-line';
 import { timeIn } from '@/lib/format';
 
 export function EmployeeHeader({ employee, timezone }: { employee: EmployeeDetail; timezone: string }) {
@@ -25,6 +26,7 @@ export function EmployeeHeader({ employee, timezone }: { employee: EmployeeDetai
         <div className="ml-auto flex flex-col items-end gap-1">
           <StatusChip employee={employee} />
           {presence ? <span className="text-sm text-ink-500">{presence}</span> : null}
+          <ConsentLine consentedAt={employee.consentedAt} timezone={timezone} />
         </div>
       </div>
     </div>

@@ -27,6 +27,13 @@ const detailSelect = {
   ...select,
   phone: true,
   createdAt: true,
+  deletedAt: true,
+  user: { select: { status: true } },
+  consentRecords: {
+    select: { version: true, acceptedAt: true },
+    orderBy: { acceptedAt: 'desc' as const },
+    take: 1,
+  },
   sessions: { where: { status: 'ACTIVE' as const }, select: { id: true, startedAtServer: true }, take: 1 },
 } satisfies Prisma.EmployeeSelect;
 
@@ -49,7 +56,7 @@ export class EmployeesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async list(companyId: string, q: EmployeeListQuery): Promise<EmployeeListResponse> {
-    const where: Prisma.EmployeeWhereInput = { companyId };
+    const where: Prisma.EmployeeWhereInput = { companyId, deletedAt: null };
     if (q.query) where.name = { contains: q.query, mode: 'insensitive' };
     if (q.status === 'WORKING') where.sessions = { some: { status: 'ACTIVE' } };
     if (q.status === 'OFF_DUTY') where.sessions = { none: { status: 'ACTIVE' } };
@@ -71,15 +78,19 @@ export class EmployeesService {
     // Another company's id and a garbage id look identical: no hint that the record exists.
     const notFound = new AppError(404, 'NOT_FOUND', 'Employee not found.');
     if (!UUID.test(id)) throw notFound;
-    const row = await this.prisma.employee.findFirst({ where: { id, companyId }, select: detailSelect });
+    const row = await this.prisma.employee.findFirst({ where: { id, companyId, deletedAt: null }, select: detailSelect });
     if (!row) throw notFound;
     const last = await this.prisma.locationPoint.findFirst({ where: { employeeId: row.id }, orderBy: { capturedAt: 'desc' }, select: { capturedAt: true } });
+    const latestConsent = row.consentRecords[0];
     return {
       ...toItem(row),
       phone: row.phone,
       joinedAt: row.createdAt.toISOString(),
       workingSince: row.sessions[0]?.startedAtServer.toISOString() ?? null,
       lastSeenAt: last?.capturedAt.toISOString() ?? null,
+      consentedAt: latestConsent ? latestConsent.acceptedAt.toISOString() : null,
+      consentVersion: latestConsent ? latestConsent.version : null,
+      deactivated: row.user?.status === 'DISABLED',
     };
   }
 }

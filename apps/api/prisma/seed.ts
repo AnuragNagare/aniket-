@@ -215,6 +215,7 @@ async function removeExistingDemo() {
       prisma.generatedSummary.deleteMany({ where: { companyId } }),
       prisma.report.deleteMany({ where: { companyId } }),
       prisma.invitation.deleteMany({ where: { companyId } }),
+      prisma.consentRecord.deleteMany({ where: { companyId } }),
       prisma.auditLog.deleteMany({ where: { companyId } }),
       prisma.employee.deleteMany({ where: { companyId } }),
       prisma.user.deleteMany({ where: { companyId } }),
@@ -261,6 +262,20 @@ async function main() {
         phone,
       },
     });
+
+    // Every demo employee consents except Rohit
+    if (e.name !== 'Rohit Singh') {
+      await prisma.consentRecord.create({
+        data: {
+          companyId: company.id,
+          employeeId: employee.id,
+          version: '2026-10-v1',
+          appVersion: '1.0.0',
+          deviceModel: 'Pixel 8',
+          ip: '127.0.0.1',
+        },
+      });
+    }
     const common = { companyId: company.id, employeeId: employee.id, route: e.route, startHour: 9 };
     if (i === 4) {
       // Vikram has one session left running from 2 days ago at 09:00 IST

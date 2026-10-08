@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { Linking, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Button } from '../../components/Button';
 import { Notice } from '../../components/Notice';
 import { Screen } from '../../components/Screen';
+import { PrivacyNotice } from '../../components/PrivacyNotice';
+import { usePrivacyNotice } from '../../privacy/use-notice';
+import { useRecordConsent } from '../../privacy/use-consent';
 import { requestBackgroundPermission, requestPermission } from '../../location/location';
 import { colors, fonts } from '../../theme/theme';
 
@@ -32,15 +35,66 @@ const BACKGROUND_POINTS: Array<[string, string]> = [
 
 export default function PermissionsScreen() {
   const router = useRouter();
-  const { step } = useLocalSearchParams<{ step?: string }>();
-  const isBackground = step === 'background';
+  const params = useLocalSearchParams<{ step?: string }>();
+  const [currentStep, setCurrentStep] = useState<string>(params.step ?? 'notice');
+  const isBackground = currentStep === 'background';
+  const isLocation = currentStep === 'location';
+  const isNotice = !isBackground && !isLocation;
+
   const [blocked, setBlocked] = useState(false);
+  const [consentError, setConsentError] = useState<string | null>(null);
+
+  const notice = usePrivacyNotice();
+  const recordConsent = useRecordConsent();
+
+  const handleAgreeNotice = async () => {
+    if (!notice.data) return;
+    setConsentError(null);
+    try {
+      await recordConsent.mutateAsync(notice.data.version);
+      setCurrentStep('location');
+    } catch (e) {
+      setConsentError(e instanceof Error ? e.message : 'Failed to record consent.');
+    }
+  };
 
   const allow = async () => {
     const state = isBackground ? await requestBackgroundPermission() : await requestPermission();
     if (state === 'granted') return router.back();
     setBlocked(state === 'blocked' || state === 'denied');
   };
+
+  if (isNotice) {
+    if (notice.isLoading) {
+      return (
+        <Screen>
+          <ActivityIndicator color={colors.brand700} style={{ marginTop: 40 }} />
+        </Screen>
+      );
+    }
+    if (notice.error || !notice.data) {
+      return (
+        <Screen>
+          <Notice tone="warning">
+            {notice.error?.message ?? 'Failed to load privacy notice.'}
+          </Notice>
+          <Button title="Try again" onPress={() => void notice.refetch()} />
+          <Button title="Back" variant="secondary" onPress={() => router.back()} />
+        </Screen>
+      );
+    }
+    return (
+      <Screen>
+        {consentError ? <Notice tone="warning">{consentError}</Notice> : null}
+        <PrivacyNotice
+          notice={notice.data}
+          loading={recordConsent.isPending}
+          onAgree={() => void handleAgreeNotice()}
+          onCancel={() => router.back()}
+        />
+      </Screen>
+    );
+  }
 
   const points = isBackground ? BACKGROUND_POINTS : FOREGROUND_POINTS;
 

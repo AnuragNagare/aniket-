@@ -14,3 +14,4 @@ export * from './ranges.js';
 export * from './employee-activity.js';
 export * from './ai.js';
 export * from './reports.js';
+export * from './privacy.js';

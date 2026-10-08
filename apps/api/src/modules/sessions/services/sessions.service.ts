@@ -13,6 +13,7 @@ import { qualityFor } from '../../../common/utils/location-quality.js';
 import { PrismaService } from '../../../database/prisma.service.js';
 import type { AuthContext } from '../../auth/types/auth-context.js';
 import { CurrentEmployeeService } from './current-employee.service.js';
+import { ConsentService } from '../../privacy/services/consent.service.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -22,6 +23,7 @@ export class SessionsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly currentEmployee: CurrentEmployeeService,
+    private readonly consent: ConsentService,
   ) {}
 
   async active(auth: AuthContext): Promise<ActiveSessionResponse> {
@@ -37,6 +39,7 @@ export class SessionsService {
 
   async start(auth: AuthContext, input: StartSessionInput): Promise<SessionMutationResponse> {
     const employee = await this.currentEmployee.forAuth(auth);
+    await this.consent.require(employee.id);
     const now = new Date();
     try {
       const session = await this.prisma.$transaction(async (tx) => {

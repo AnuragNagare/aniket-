@@ -92,19 +92,13 @@ const FIXTURES: Record<string, (ctx: TestContext) => { body?: any; params?: Reco
   'GET /api/v1/sessions/me/active': () => ({}),
   'POST /api/v1/sessions/start': () => ({
     body: {
-      clientSessionId: randomUUID(),
-      startedAt: new Date().toISOString(),
-      latitude: 19.07,
-      longitude: 72.87,
+      deviceTime: new Date().toISOString(),
     },
   }),
   'POST /api/v1/sessions/:sessionId/end': (ctx) => ({
     params: { sessionId: ctx.sessB.id },
     body: {
-      clientPointId: randomUUID(),
-      endedAt: new Date().toISOString(),
-      latitude: 19.07,
-      longitude: 72.87,
+      deviceTime: new Date().toISOString(),
     },
   }),
   'POST /api/v1/locations/batch': () => ({
@@ -117,6 +111,12 @@ const FIXTURES: Record<string, (ctx: TestContext) => { body?: any; params?: Reco
       text: 'Visited client site',
       inputMethod: 'TYPED',
       submittedAt: new Date().toISOString(),
+    },
+  }),
+  'GET /api/v1/privacy/notice': () => ({}),
+  'POST /api/v1/me/consent': () => ({
+    body: {
+      version: '2026-10-v1',
     },
   }),
 };

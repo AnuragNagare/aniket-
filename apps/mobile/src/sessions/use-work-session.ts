@@ -17,6 +17,12 @@ type ActiveView = { session: WorkSessionDto | null; offsetMs: number; pendingEnd
 
 export class NeedsPermissionError extends Error {}
 export class LocationOffError extends Error {}
+export class ConsentRequiredError extends Error {
+  constructor(message = 'Please read and accept the privacy notice first.') {
+    super(message);
+    this.name = 'ConsentRequiredError';
+  }
+}
 
 const toView = (r: ActiveSessionResponse | SessionMutationResponse): ActiveView => ({
   session: r.session,
@@ -64,6 +70,8 @@ export function useWorkSession() {
         // Already running (double tap or retry): show that session instead of an error.
         if (e instanceof ApiError && e.code === 'SESSION_ALREADY_ACTIVE') {
           view = await fetchActive();
+        } else if (e instanceof ApiError && e.code === 'CONSENT_REQUIRED') {
+          throw new ConsentRequiredError(e.message);
         } else {
           throw e;
         }

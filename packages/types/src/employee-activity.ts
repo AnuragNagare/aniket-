@@ -11,6 +11,9 @@ export type EmployeeDetail = EmployeeListItem & {
   joinedAt: string;
   workingSince: string | null;
   lastSeenAt: string | null;
+  consentedAt: string | null;
+  consentVersion: string | null;
+  deactivated: boolean;
 };
 
 export type EmployeeSummary = {
