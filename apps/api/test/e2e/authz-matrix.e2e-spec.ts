@@ -136,7 +136,9 @@ const FIXTURES: Record<string, (ctx: TestContext) => { body?: any; params?: Reco
       next: 'NewStrongPass2',
     },
   }),
+  'GET /api/v1/audit-logs': () => ({}),
 };
+
 
 type TestContext = {
   adminA: { token: string; user: { id: string; companyId: string } };

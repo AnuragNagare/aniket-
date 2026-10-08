@@ -4,6 +4,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { CompanyForm } from '@/components/settings/company-form';
 import { RetentionForm } from '@/components/settings/retention-form';
 import { SettingsNav } from '@/components/settings/settings-nav';
+import { AuditTable } from '@/components/settings/audit-table';
+import type { AuditLogItem } from '@worktrail/types';
+
 
 vi.mock('next/navigation', () => ({
   usePathname: () => '/app/settings',
@@ -118,3 +121,36 @@ describe('CompanyForm', () => {
     expect(action).not.toHaveBeenCalled();
   });
 });
+
+describe('AuditTable', () => {
+  it('renders the empty state "Nothing recorded in this period."', () => {
+    render(<AuditTable items={[]} />);
+    expect(screen.getByText('Nothing recorded in this period.')).toBeInTheDocument();
+  });
+
+  it('renders the label, actor, date in IST and IP', () => {
+    const items: AuditLogItem[] = [
+      {
+        id: 'log-1',
+        action: 'report.downloaded',
+        label: 'Downloaded a PDF report',
+        actorName: 'Alice Admin',
+        entityType: 'report',
+        entityName: 'Ravi Kumar report',
+        createdAt: '2026-10-08T09:30:00.000Z',
+        ip: '203.0.113.42',
+        details: { format: 'pdf', byteSize: 2048 },
+      },
+    ];
+
+    render(<AuditTable items={items} timezone="Asia/Kolkata" />);
+
+    expect(screen.getByText('Downloaded a PDF report')).toBeInTheDocument();
+    expect(screen.getByText('Alice Admin')).toBeInTheDocument();
+    expect(screen.getByText('Ravi Kumar report')).toBeInTheDocument();
+    // 09:30:00 UTC is 15:00 (3:00 PM) in Asia/Kolkata
+    expect(screen.getByText(/8 Oct 2026, 3:00 pm/i)).toBeInTheDocument();
+    expect(screen.getByText('203.0.113.42')).toBeInTheDocument();
+  });
+});
+

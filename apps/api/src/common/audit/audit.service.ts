@@ -3,29 +3,10 @@ import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service.js';
 import { getRequestContext } from '../context/request-context.js';
 
-export type AuditAction =
-  | 'invitation.created'
-  | 'invitation.resent'
-  | 'invitation.accepted'
-  | 'password.reset'
-  | 'session.closed_by_admin'
-  | 'summary.requested'
-  | 'report.requested'
-  | 'report.downloaded'
-  | 'admin.signed_in'
-  | 'company.updated'
-  | 'retention.updated'
-  | 'retention.purged'
-  | 'consent.recorded'
-  | 'deletion.requested'
-  | 'deletion.dismissed'
-  | 'employee.deactivated'
-  | 'employee.reactivated'
-  | 'employee.password_reset_sent'
-  | 'employee.erased'
-  | 'export.requested'
-  | 'export.downloaded'
-  | 'company.erased';
+import type { AuditAction } from '@worktrail/types';
+
+export type { AuditAction };
+
 
 export type AuditEntityType =
   | 'invitation'

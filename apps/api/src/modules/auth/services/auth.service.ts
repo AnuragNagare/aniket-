@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import type { AdminSignupInput, AuthTokens, AuthUser, LoginInput } from '@worktrail/types';
 import { AppError } from '../../../common/errors/app-error.js';
 import { PrismaService } from '../../../database/prisma.service.js';
+import { AuditService } from '../../../common/audit/audit.service.js';
 import { hashPassword, verifyAgainstDummy, verifyPassword } from '../utils/password.js';
 import { TokensService, toAuthUser } from './tokens.service.js';
 
@@ -14,6 +15,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tokens: TokensService,
+    private readonly audit: AuditService,
   ) {}
 
   /** Creates a company and its OWNER in one transaction, then signs them in. */
@@ -59,6 +61,17 @@ export class AuthService {
         'This account is disabled. Contact your company admin.',
       );
     }
+
+    if (user.role === 'OWNER' || user.role === 'ADMIN') {
+      await this.audit.record({
+        companyId: user.companyId,
+        actorUserId: user.id,
+        action: 'admin.signed_in',
+        entityType: 'user',
+        entityId: user.id,
+      });
+    }
+
     return this.tokens.issue(user);
   }
 

@@ -129,4 +129,102 @@ describe('Company and account settings (e2e)', () => {
       .send({ email: admin.user.email, password: 'NewStrongPassword123' });
     expect(loginRes.status).toBe(200);
   });
+
+  it('lists audit logs with labels, resolved actors, filtering, and metadata whitelist', async () => {
+    const adminA = await signupAs(app);
+    const empA = await employeeAs(app, prisma, adminA.user.companyId);
+
+    // 1. Employee access is denied
+    const empRes = await request(app.getHttpServer())
+      .get('/api/v1/audit-logs')
+      .set('Authorization', `Bearer ${empA.token}`);
+    expect(empRes.status).toBe(403);
+
+    // 2. Admin login creates admin.signed_in audit entry
+    const loginRes = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ email: adminA.user.email, password: 'StrongPass1' });
+    expect(loginRes.status).toBe(200);
+
+    // 3. Create an invitation creates invitation.created audit entry
+    const inviteRes = await request(app.getHttpServer())
+      .post('/api/v1/employees/invitations')
+      .set('Authorization', `Bearer ${adminA.token}`)
+      .send({ name: 'Audit Test Employee', email: 'auditemp@example.com' });
+    expect(inviteRes.status).toBe(201);
+
+    // 4. Report download audit entry with whitelisted + secret metadata
+    const reportId = randomUUID();
+    await prisma.auditLog.create({
+      data: {
+        companyId: adminA.user.companyId,
+        actorUserId: adminA.user.id,
+        action: 'report.downloaded',
+        entityType: 'report',
+        entityId: reportId,
+        metadata: {
+          format: 'pdf',
+          byteSize: 2048,
+          secretInternalKey: 'must-be-scrubbed-out',
+        },
+      },
+    });
+
+    // 5. Retention change creates retention.updated audit entry
+    const retRes = await request(app.getHttpServer())
+      .patch('/api/v1/company')
+      .set('Authorization', `Bearer ${adminA.token}`)
+      .send({ preciseLocationRetentionDays: 45 });
+    expect(retRes.status).toBe(200);
+
+    // 6. GET /audit-logs lists them newest first with labels and actor names
+    const listRes = await request(app.getHttpServer())
+      .get('/api/v1/audit-logs')
+      .set('Authorization', `Bearer ${adminA.token}`);
+    expect(listRes.status).toBe(200);
+    expect(listRes.body.items.length).toBeGreaterThanOrEqual(4);
+
+    const items = listRes.body.items;
+    // Newest first check
+    for (let i = 0; i < items.length - 1; i++) {
+      expect(new Date(items[i].createdAt).getTime()).toBeGreaterThanOrEqual(
+        new Date(items[i + 1].createdAt).getTime(),
+      );
+    }
+
+    // Verify retention.updated item
+    const retItem = items.find((i: any) => i.action === 'retention.updated');
+    expect(retItem).toBeDefined();
+    expect(retItem.label).toBe('Updated data retention period');
+    expect(retItem.actorName).toBe(adminA.user.name);
+
+    // Verify report.downloaded item and metadata whitelist
+    const reportItem = items.find((i: any) => i.action === 'report.downloaded');
+    expect(reportItem).toBeDefined();
+    expect(reportItem.label).toBe('Downloaded a PDF report');
+    expect(reportItem.details.format).toBe('pdf');
+    expect(reportItem.details.byteSize).toBe(2048);
+    expect((reportItem.details as any).secretInternalKey).toBeUndefined();
+
+    // Verify invitation.created item
+    const inviteItem = items.find((i: any) => i.action === 'invitation.created');
+    expect(inviteItem).toBeDefined();
+    expect(inviteItem.label).toBe('Created an employee invitation');
+
+    // 7. Filter by action=report.downloaded gives one row
+    const filterRes = await request(app.getHttpServer())
+      .get('/api/v1/audit-logs?action=report.downloaded')
+      .set('Authorization', `Bearer ${adminA.token}`);
+    expect(filterRes.status).toBe(200);
+    expect(filterRes.body.items).toHaveLength(1);
+    expect(filterRes.body.items[0].action).toBe('report.downloaded');
+
+    // 8. Another company sees none of company A's audit logs
+    const adminB = await signupAs(app);
+    const listBRes = await request(app.getHttpServer())
+      .get('/api/v1/audit-logs?action=report.downloaded')
+      .set('Authorization', `Bearer ${adminB.token}`);
+    expect(listBRes.status).toBe(200);
+    expect(listBRes.body.items).toHaveLength(0);
+  });
 });
