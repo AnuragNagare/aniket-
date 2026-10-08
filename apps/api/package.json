@@ -28,7 +28,8 @@
     "db:seed": "node scripts/with-env.mjs tsx prisma/seed.ts",
     "worker": "node scripts/with-env.mjs node dist/worker.js",
     "worker:dev": "node scripts/with-env.mjs tsx watch src/worker.ts",
-    "pdf:install": "playwright install chromium"
+    "pdf:install": "playwright install chromium",
+    "ops:erase-company": "node scripts/with-env.mjs tsx scripts/erase-company.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
