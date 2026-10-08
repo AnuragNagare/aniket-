@@ -5,6 +5,7 @@ import { PeriodSummaryService } from '../../modules/summaries/services/period-su
 import { SummarySweeperService } from '../../modules/summaries/services/summary-sweeper.service.js';
 import { UpdateSummaryService } from '../../modules/summaries/services/update-summary.service.js';
 import { ReportProcessor } from '../../modules/reports/services/report.processor.js';
+import { RetentionService } from '../../modules/privacy/services/retention.service.js';
 
 @Injectable()
 export class JobRouter {
@@ -39,6 +40,11 @@ export class JobRouter {
       case 'maintenance.sweep': {
         const svc = this.moduleRef.get(SummarySweeperService, { strict: false });
         await svc.sweep();
+        break;
+      }
+      case 'maintenance.retention': {
+        const svc = this.moduleRef.get(RetentionService, { strict: false });
+        await svc.run();
         break;
       }
       default:

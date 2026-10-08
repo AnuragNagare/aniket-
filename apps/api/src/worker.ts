@@ -39,6 +39,7 @@ worker.on('failed', (job, err) =>
 // Sweep every 2 minutes
 const bQueue = ctx.get(BullmqQueue);
 await bQueue.schedule('maintenance.sweep', 120_000);
+await bQueue.scheduleCron('maintenance.retention', '0 2 * * *', 'Asia/Kolkata');
 log.log('Worker ready');
 
 for (const sig of ['SIGINT', 'SIGTERM'] as const) {

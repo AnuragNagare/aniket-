@@ -6,6 +6,7 @@ export type JobData = {
   'period.summarise': { summaryId: string };
   'report.generate': { reportId: string };
   'maintenance.sweep': Record<string, never>;
+  'maintenance.retention': Record<string, never>;
 };
 export type JobName = keyof JobData;
 

@@ -119,6 +119,23 @@ const FIXTURES: Record<string, (ctx: TestContext) => { body?: any; params?: Reco
       version: '2026-10-v1',
     },
   }),
+  'GET /api/v1/company': () => ({}),
+  'PATCH /api/v1/company': () => ({
+    body: {
+      name: 'Updated Co',
+    },
+  }),
+  'PATCH /api/v1/me/account': () => ({
+    body: {
+      name: 'Updated Admin',
+    },
+  }),
+  'POST /api/v1/me/password': () => ({
+    body: {
+      current: 'StrongPass1',
+      next: 'NewStrongPass2',
+    },
+  }),
 };
 
 type TestContext = {

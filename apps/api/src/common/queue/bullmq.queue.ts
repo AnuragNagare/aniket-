@@ -37,6 +37,11 @@ export class BullmqQueue implements JobQueue, OnModuleDestroy {
     await this.queue.upsertJobScheduler(name, { every: everyMs });
   }
 
+  async scheduleCron<N extends JobName>(name: N, pattern: string, tz = 'Asia/Kolkata'): Promise<void> {
+    if (!this.queue) throw new Error('BullmqQueue connection not available');
+    await this.queue.upsertJobScheduler(name, { pattern, tz });
+  }
+
   async onModuleDestroy(): Promise<void> {
     if (this.queue) await this.queue.close();
     if (this.connection) await this.connection.quit();

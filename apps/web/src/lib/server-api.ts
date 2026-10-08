@@ -31,15 +31,19 @@ export async function serverApi<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-/** Authenticated POST from a Server Action. API errors come back as data so forms can show them. */
-export async function serverMutate<T>(path: string, body: unknown = {}): Promise<MutationResult<T>> {
+/** Authenticated POST/PATCH from a Server Action. API errors come back as data so forms can show them. */
+export async function serverMutate<T>(
+  path: string,
+  body: unknown = {},
+  method: 'POST' | 'PATCH' | 'DELETE' = 'POST',
+): Promise<MutationResult<T>> {
   const accessToken = (await cookies()).get(ACCESS_COOKIE)?.value;
   if (!accessToken) redirect('/api/session/expired');
 
   let res: Response;
   try {
     res = await fetch(apiUrl(path), {
-      method: 'POST',
+      method,
       headers: { authorization: `Bearer ${accessToken}`, 'content-type': 'application/json' },
       body: JSON.stringify(body),
       cache: 'no-store',
