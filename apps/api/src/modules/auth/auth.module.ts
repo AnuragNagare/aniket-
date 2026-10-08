@@ -7,6 +7,7 @@ import { RolesGuard } from './guards/roles.guard.js';
 import { AuthService } from './services/auth.service.js';
 import { PasswordResetService } from './services/password-reset.service.js';
 import { TokensService } from './services/tokens.service.js';
+import { UserStatusCache } from './services/user-status-cache.service.js';
 
 /**
  * Sign-up, sign-in and token lifecycle. Registers the global guards: every route
@@ -19,9 +20,11 @@ import { TokensService } from './services/tokens.service.js';
     AuthService,
     TokensService,
     PasswordResetService,
+    UserStatusCache,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
-  exports: [TokensService],
+  exports: [TokensService, UserStatusCache, PasswordResetService],
 })
 export class AuthModule {}
+

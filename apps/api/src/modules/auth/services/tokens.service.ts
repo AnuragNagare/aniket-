@@ -62,7 +62,9 @@ export class TokensService {
       where: { id },
       include: { user: true },
     });
-    if (!row || row.tokenHash !== sha256(secret)) throw sessionExpired();
+    if (row.user.status === 'DISABLED') {
+      throw new AppError(401, 'ACCOUNT_DISABLED', 'This account has been disabled.');
+    }
 
     if (row.revokedAt) {
       // A rotated token came back: assume it was stolen and end every session for this user.
@@ -73,6 +75,9 @@ export class TokensService {
       throw sessionExpired();
     }
     if (row.expiresAt < new Date() || row.user.status !== 'ACTIVE') throw sessionExpired();
+
+
+
 
     // Claim the token atomically so two concurrent refreshes can't both succeed.
     const claimed = await this.prisma.refreshToken.updateMany({

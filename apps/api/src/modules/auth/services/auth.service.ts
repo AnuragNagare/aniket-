@@ -56,7 +56,7 @@ export class AuthService {
     }
     if (user.status !== 'ACTIVE') {
       throw new AppError(
-        403,
+        401,
         'ACCOUNT_DISABLED',
         'This account is disabled. Contact your company admin.',
       );

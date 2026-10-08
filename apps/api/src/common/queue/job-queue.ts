@@ -7,6 +7,8 @@ export type JobData = {
   'report.generate': { reportId: string };
   'maintenance.sweep': Record<string, never>;
   'maintenance.retention': Record<string, never>;
+  'privacy.export': { exportId: string; companyId: string; employeeId: string };
+  'privacy.erase': { employeeId: string; companyId: string };
 };
 export type JobName = keyof JobData;
 

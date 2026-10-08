@@ -55,5 +55,6 @@ export async function employeeAs(
     .send({ email, password: 'StrongPass1' })
     .expect(200);
   const body = res.body as AuthTokens;
-  return { token: body.accessToken, user: body.user, employee };
+  return { token: body.accessToken, refreshToken: body.refreshToken, user: body.user, employee };
 }
+

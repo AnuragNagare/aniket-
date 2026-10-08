@@ -6,6 +6,8 @@ import { SummarySweeperService } from '../../modules/summaries/services/summary-
 import { UpdateSummaryService } from '../../modules/summaries/services/update-summary.service.js';
 import { ReportProcessor } from '../../modules/reports/services/report.processor.js';
 import { RetentionService } from '../../modules/privacy/services/retention.service.js';
+import { ExportsService } from '../../modules/privacy/services/exports.service.js';
+import { ErasureService } from '../../modules/privacy/services/erasure.service.js';
 
 @Injectable()
 export class JobRouter {
@@ -47,6 +49,19 @@ export class JobRouter {
         await svc.run();
         break;
       }
+      case 'privacy.export': {
+        const d = data as JobData['privacy.export'];
+        const svc = this.moduleRef.get(ExportsService, { strict: false });
+        await svc.runExportJob(d);
+        break;
+      }
+      case 'privacy.erase': {
+        const d = data as JobData['privacy.erase'];
+        const svc = this.moduleRef.get(ErasureService, { strict: false });
+        await svc.erase(d.employeeId, d.companyId);
+        break;
+      }
+
       default:
         this.log.warn(`Unknown job name: ${name}`);
     }

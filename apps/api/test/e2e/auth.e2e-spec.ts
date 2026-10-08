@@ -128,7 +128,7 @@ describe('auth', () => {
     const res = await http()
       .post('/api/v1/auth/login')
       .send({ email: 'rahul@acme.in', password: 'StrongPass1' })
-      .expect(403);
+      .expect(401);
     expect(res.body.error.code).toBe('ACCOUNT_DISABLED');
   });
 });

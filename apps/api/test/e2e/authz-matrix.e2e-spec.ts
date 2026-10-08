@@ -137,8 +137,37 @@ const FIXTURES: Record<string, (ctx: TestContext) => { body?: any; params?: Reco
     },
   }),
   'GET /api/v1/audit-logs': () => ({}),
+  'POST /api/v1/employees/:id/deactivate': (ctx) => ({
+    params: { id: ctx.empB.id },
+  }),
+  'POST /api/v1/employees/:id/reactivate': (ctx) => ({
+    params: { id: ctx.empB.id },
+  }),
+  'POST /api/v1/employees/:id/password-reset': (ctx) => ({
+    params: { id: ctx.empB.id },
+  }),
+  'POST /api/v1/me/deletion-request': () => ({
+    body: { reason: 'Test reason' },
+  }),
+  'GET /api/v1/deletion-requests': () => ({}),
+  'POST /api/v1/deletion-requests/:id/dismiss': (ctx) => ({
+    params: { id: ctx.deletionReqB.id },
+    body: { note: 'Dismiss note' },
+  }),
+  'POST /api/v1/employees/:id/exports': (ctx) => ({
+    params: { id: ctx.empB.id },
+  }),
+  'GET /api/v1/exports/:id': (ctx) => ({
+    params: { id: ctx.exportB.id },
+  }),
+  'GET /api/v1/exports/:id/download': (ctx) => ({
+    params: { id: ctx.exportB.id },
+  }),
+  'POST /api/v1/employees/:id/erase': (ctx) => ({
+    params: { id: ctx.empB.id },
+    body: { confirmName: 'Emp B' },
+  }),
 };
-
 
 type TestContext = {
   adminA: { token: string; user: { id: string; companyId: string } };
@@ -147,7 +176,10 @@ type TestContext = {
   empB: { id: string };
   sessB: { id: string };
   reportB: { id: string };
+  deletionReqB: { id: string };
+  exportB: { id: string };
 };
+
 
 describe('Authorisation matrix across every route', () => {
   let app: INestApplication;
@@ -185,6 +217,23 @@ describe('Authorisation matrix across every route', () => {
       },
     });
 
+    const deletionReqB = await prisma.deletionRequest.create({
+      data: {
+        companyId: adminB.user.companyId,
+        employeeId: empBObj.employee.id,
+        status: 'OPEN',
+      },
+    });
+
+    const exportB = await prisma.dataExport.create({
+      data: {
+        companyId: adminB.user.companyId,
+        employeeId: empBObj.employee.id,
+        requestedByUserId: adminB.user.id,
+        status: 'READY',
+      },
+    });
+
     ctx = {
       adminA,
       empA,
@@ -192,7 +241,10 @@ describe('Authorisation matrix across every route', () => {
       empB: empBObj.employee,
       sessB,
       reportB,
+      deletionReqB,
+      exportB,
     };
+
 
     // Discover all registered routes
     const discovery = app.get(DiscoveryService);

@@ -30,3 +30,15 @@ export async function updateAccountAction(values: UpdateAccountInput) {
 export async function changePasswordAction(values: ChangePasswordInput) {
   return serverMutate<{ ok: boolean }>('/me/password', values, 'POST');
 }
+
+export async function dismissDeletionRequestAction(requestId: string, note?: string) {
+  const result = await serverMutate<{ ok: true; status: 'DISMISSED' }>(
+    `/deletion-requests/${encodeURIComponent(requestId)}/dismiss`,
+    { note },
+    'POST',
+  );
+  if (result.ok) {
+    revalidatePath('/app/settings/privacy');
+  }
+  return result;
+}

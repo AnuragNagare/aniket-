@@ -17,12 +17,13 @@ function scrubObject(obj: unknown): unknown {
 
 export function scrubEvent<T extends Record<string, any>>(event: T): T {
   if (!event) return event;
-  if (event.extra) {
-    event.extra = scrubObject(event.extra) as Record<string, unknown>;
+  const e = event as any;
+  if (e.extra) {
+    e.extra = scrubObject(e.extra);
   }
-  if (event.user) {
-    const userId = event.user.id;
-    event.user = userId ? { id: userId } : undefined;
+  if (e.user) {
+    const userId = e.user.id;
+    e.user = userId ? { id: userId } : undefined;
   }
   return event;
 }

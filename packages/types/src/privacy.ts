@@ -55,3 +55,14 @@ export type DataExportDto = {
   generatedAt: string | null;
   expiresAt: string | null;
 };
+
+export const DismissDeletionRequestSchema = z.object({
+  note: z.string().trim().min(1, 'Note is required.').max(500),
+});
+export type DismissDeletionRequestInput = z.output<typeof DismissDeletionRequestSchema>;
+
+export const EraseEmployeeSchema = z.object({
+  confirmName: z.string().trim().min(1, "Type the employee's name exactly to confirm."),
+});
+export type EraseEmployeeInput = z.output<typeof EraseEmployeeSchema>;
+

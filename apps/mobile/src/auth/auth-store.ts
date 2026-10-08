@@ -1,3 +1,4 @@
+import { Alert } from 'react-native';
 import { create } from 'zustand';
 import type { AuthTokens, AuthUser } from '@worktrail/types';
 import { api, ApiError } from '../api';
@@ -18,6 +19,7 @@ type AuthState = {
   signOut(): Promise<void>;
   refreshAccessToken(): Promise<string | null>;
   clearLocal(): Promise<void>;
+  handleAccountDisabled(): Promise<void>;
 };
 
 const isNetwork = (e: unknown) => e instanceof ApiError && e.code === 'NETWORK';
@@ -108,6 +110,10 @@ export const useAuthStore = create<AuthState>((set, get) => {
         set({ accessToken: tokens.accessToken, user: tokens.user });
         return tokens.accessToken;
       } catch (e) {
+        if (e instanceof ApiError && e.code === 'ACCOUNT_DISABLED') {
+          await get().handleAccountDisabled();
+          return null;
+        }
         if (isNetwork(e)) throw e;
         await get().clearLocal();
         return null;
@@ -117,6 +123,15 @@ export const useAuthStore = create<AuthState>((set, get) => {
     async clearLocal() {
       await tokenStorage.clear();
       set({ status: 'signedOut', user: null, accessToken: null });
+    },
+
+    async handleAccountDisabled() {
+      await stopTracking().catch(() => undefined);
+      await (await getOutbox()).clear().catch(() => undefined);
+      await (await getUpdateQueue()).clear().catch(() => undefined);
+      await tokenStorage.clear().catch(() => undefined);
+      set({ status: 'signedOut', user: null, accessToken: null });
+      Alert.alert('Account disabled', 'This account has been turned off by your company.');
     },
   };
 });

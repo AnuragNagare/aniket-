@@ -10,4 +10,5 @@ export const api = createApiClient({
   getAccessToken: () => useAuthStore.getState().accessToken,
   refreshAccessToken: () => useAuthStore.getState().refreshAccessToken(),
   onSessionExpired: () => void useAuthStore.getState().clearLocal(),
+  onAccountDisabled: () => void useAuthStore.getState().handleAccountDisabled(),
 });

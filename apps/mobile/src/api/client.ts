@@ -19,6 +19,7 @@ type Deps = {
   /** Returns a fresh access token, or null when the session can't be renewed. */
   refreshAccessToken: () => Promise<string | null>;
   onSessionExpired: () => void;
+  onAccountDisabled?: () => void;
 };
 
 export type ApiClient = {
@@ -71,6 +72,9 @@ export function createApiClient(deps: Deps): ApiClient {
     const json: unknown = await res.json().catch(() => null);
     if (res.ok) return json as T;
     const e = (json as ApiErrorBody | null)?.error;
+    if (e?.code === 'ACCOUNT_DISABLED') {
+      deps.onAccountDisabled?.();
+    }
     throw new ApiError(
       res.status,
       e?.code ?? 'ERROR',
@@ -89,13 +93,27 @@ export function createApiClient(deps: Deps): ApiClient {
       const auth = opts.auth ?? true;
       let res = await send(method, path, body, auth ? deps.getAccessToken() : null, opts.headers);
       if (auth && res.status === 401) {
+        const clone = res.clone();
+        const json: any = await clone.json().catch(() => null);
+        if (json?.error?.code === 'ACCOUNT_DISABLED') {
+          deps.onAccountDisabled?.();
+          throw new ApiError(401, 'ACCOUNT_DISABLED', 'This account has been turned off by your company.');
+        }
         const token = await refreshOnce();
         if (!token) {
           deps.onSessionExpired();
           throw new ApiError(401, 'SESSION_EXPIRED', 'Your session has expired. Sign in again.');
         }
         res = await send(method, path, body, token, opts.headers);
-        if (res.status === 401) deps.onSessionExpired();
+        if (res.status === 401) {
+          const clone2 = res.clone();
+          const json2: any = await clone2.json().catch(() => null);
+          if (json2?.error?.code === 'ACCOUNT_DISABLED') {
+            deps.onAccountDisabled?.();
+          } else {
+            deps.onSessionExpired();
+          }
+        }
       }
       return parse<T>(res);
     },

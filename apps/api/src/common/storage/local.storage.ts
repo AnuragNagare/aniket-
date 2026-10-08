@@ -7,7 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { AppError } from '../errors/app-error.js';
 import type { FileStorage } from './file-storage.js';
 
-const KEY_REGEX = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.pdf$/i;
+const KEY_REGEX = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(pdf|zip)$/i;
 
 @Injectable()
 export class LocalStorage implements FileStorage {
@@ -33,7 +33,8 @@ export class LocalStorage implements FileStorage {
     const dir = path.dirname(fullPath);
     await mkdir(dir, { recursive: true });
 
-    const tempPath = path.join(dir, `.tmp-${randomUUID()}.pdf`);
+    const ext = path.extname(key) || '.tmp';
+    const tempPath = path.join(dir, `.tmp-${randomUUID()}${ext}`);
     await writeFile(tempPath, bytes);
     await rename(tempPath, fullPath);
   }
