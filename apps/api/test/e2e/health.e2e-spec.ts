@@ -20,6 +20,11 @@ describe('health + error envelope + security headers', () => {
     expect(res.headers['x-powered-by']).toBeUndefined();
   });
 
+  it('GET /api/v1/health/ready returns db up and redis disabled in inline mode', async () => {
+    const res = await request(app.getHttpServer()).get('/api/v1/health/ready').expect(200);
+    expect(res.body).toEqual({ db: 'up', redis: 'disabled' });
+  });
+
   it('preserves an incoming valid x-request-id', async () => {
     const customId = randomUUID();
     const res = await request(app.getHttpServer())

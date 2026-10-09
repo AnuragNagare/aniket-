@@ -1,0 +1,11 @@
+**/node_modules
+**/dist
+storage
+.git
+.turbo
+.env
+.env.*
+!.env.example
+coverage
+apps/mobile
+apps/web
