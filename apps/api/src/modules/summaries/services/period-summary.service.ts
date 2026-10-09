@@ -1,5 +1,4 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import Anthropic from '@anthropic-ai/sdk';
 import {
   type DateRange,
   type PeriodReport,
@@ -10,6 +9,7 @@ import {
 } from '@worktrail/types';
 import { formatInTimeZone } from 'date-fns-tz';
 import { AI_CLIENT, type AiClient } from '../../../common/ai/ai-client.js';
+import { TransientAiError } from '../../../common/ai/ai-errors.js';
 import { structuredCall } from '../../../common/ai/structured-call.js';
 import { AuditService } from '../../../common/audit/audit.service.js';
 import { RetryableJobError } from '../../../common/queue/job-errors.js';
@@ -22,7 +22,6 @@ import { EmployeeAccessService } from '../../employee-activity/services/employee
 import { TrailService } from '../../employee-activity/services/trail.service.js';
 import { PERIOD_SYSTEM_PROMPT, periodPayload } from '../prompts.js';
 
-const TRANSIENT = [Anthropic.RateLimitError, Anthropic.InternalServerError, Anthropic.APIConnectionError];
 
 function toDto(s: any, tz: string): PeriodSummaryDto {
   const from = formatInTimeZone(s.periodStart, tz, 'yyyy-MM-dd');
@@ -325,7 +324,7 @@ export class PeriodSummaryService {
         });
       }
     } catch (e) {
-      if (TRANSIENT.some((T) => e instanceof T)) {
+      if (e instanceof TransientAiError) {
         if (opts.finalAttempt) {
           await this.prisma.generatedSummary.update({
             where: { id: summaryId },

@@ -4,16 +4,17 @@
 
 | Component | Platform / Host | Region | Notes |
 |---|---|---|---|
-| **Web Dashboard** | Vercel | Mumbai (`bom1`) | Next.js 15 App Router |
-| **API Service** | Railway | Singapore / Asia | Node.js 22 Slim, Docker image (`apps/api/Dockerfile`) |
-| **Queue Worker** | Railway | Singapore / Asia | Same image as API, command `node dist/worker.js` |
-| **PostgreSQL 16 + PostGIS** | Railway | Singapore / Asia | PostGIS extensions active |
-| **Redis 7** | Railway | Singapore / Asia | Job queue broker for BullMQ |
-| **Object Storage (Reports/Exports)** | Cloudflare R2 | Auto | Private bucket, path style, S3-compatible |
+| **Web Dashboard** | Vercel | Mumbai (`bom1`) | Next.js App Router. Project root directory `apps/web`, config in `apps/web/vercel.json` |
+| **API Service** | Render (web service) | Singapore | Docker image (`apps/api/Dockerfile`), defined in `render.yaml` |
+| **Queue Worker** | Render (background worker) | Singapore | Same image, command `node dist/worker.js`. Runs headless Chromium for PDFs, so use Starter or larger |
+| **PostgreSQL 16** | Render Postgres | Singapore | No PostGIS needed: no migration uses it |
+| **Redis** | Render Key Value | Singapore | BullMQ broker, `noeviction` policy, internal connections only |
+| **Object Storage (Reports/Exports)** | Cloudflare R2 (S3-compatible) | Auto | Private bucket. Render disks cannot be shared between the API and the worker, so local disk is not an option |
 | **Encrypted Backups** | Cloudflare R2 | Auto | Separate bucket with distinct access keys |
-| **Error Tracking** | Sentry | Global | Configured with data scrubbing |
-| **Uptime Monitoring** | Better Stack / UptimeRobot | Global | Monitored: `/api/v1/health/ready` & `/login` |
-| **Transactional Email** | Resend | Global | Password resets and company invites |
+| **Error Tracking** | Sentry | Global | Required in production. Configured with data scrubbing |
+| **Uptime Monitoring** | Better Stack / UptimeRobot | Global | Monitored: `/api/v1/health/ready` and `/login` |
+| **Transactional Email** | Resend | Global | Password resets and company invites. Needs a verified sending domain |
+| **AI** | Groq | Global | `openai/gpt-oss-20b` (updates), `openai/gpt-oss-120b` (reports) |
 
 ---
 
@@ -22,8 +23,8 @@
 | Variable | Scope | Secret? | Description |
 |---|---|---|---|
 | `NODE_ENV` | API, Worker | No | Set to `production` |
-| `PORT` | API | No | Defaults to `4000` (or Railway port `$PORT`) |
-| `DATABASE_URL` | API, Worker | **YES** | Postgres connection string with PostGIS |
+| `PORT` | API | No | Defaults to `4000` (Render sets `$PORT`) |
+| `DATABASE_URL` | API, Worker | **YES** | Postgres connection string (filled from the Render database by `render.yaml`) |
 | `JWT_ACCESS_SECRET` | API, Worker | **YES** | 64+ random characters for signing JWTs |
 | `ACCESS_TOKEN_TTL_SECONDS`| API | No | Default `900` (15 minutes) |
 | `REFRESH_TOKEN_TTL_DAYS` | API | No | Default `30` (30 days) |
@@ -38,36 +39,41 @@
 | `S3_REGION` | API, Worker | No | `auto` |
 | `ALLOW_LOCAL_STORAGE` | API, Worker | No | `false` in production |
 | `AI_ENABLED` | API, Worker | No | `true` |
-| `ANTHROPIC_API_KEY` | API, Worker | **YES** | Claude API key |
-| `AI_UPDATE_MODEL` | API, Worker | No | `claude-opus-5-5` |
-| `AI_REPORT_MODEL` | API, Worker | No | `claude-opus-5-5` |
+| `GROQ_API_KEY` | API, Worker | **YES** | Groq API key (`gsk_...`) |
+| `RESEND_API_KEY` | API, Worker | **YES** | Resend key for invite and password-reset email. Without it, mail is only logged and not delivered. |
+| `MAIL_FROM` | API, Worker | No | Sender, e.g. `Work Trail <no-reply@worktrail.in>` (domain must be verified in Resend) |
+| `AI_UPDATE_MODEL` | API, Worker | No | `openai/gpt-oss-20b` |
+| `AI_REPORT_MODEL` | API, Worker | No | `openai/gpt-oss-120b` |
 | `SENTRY_DSN` | API, Worker, Web | No | Sentry monitoring DSN |
 | `SENTRY_ENVIRONMENT` | API, Worker, Web | No | `production` |
 | `TRUST_PROXY` | API | No | `true` |
 | `RETENTION_RUN_HOUR_IST` | Worker | No | `2` (Runs at 02:00 IST) |
 | `EXPORT_TTL_DAYS` | API, Worker | No | `7` |
+| `API_URL` | Web (Vercel) | No | Public URL of the Render API, e.g. `https://worktrail-api.onrender.com` (no `/api/v1`) |
+| `ACCESS_TOKEN_TTL_SECONDS`, `REFRESH_TOKEN_TTL_DAYS` | Web (Vercel) | No | Must match the API values so cookie lifetimes line up |
+| `NEXT_PUBLIC_SENTRY_DSN` | Web (Vercel) | No | Browser Sentry DSN |
 
 ---
 
 ## 3. Deployment & Release Steps
 
-1. **Build Container Image**:
-   Railway builds `apps/api/Dockerfile` from git push.
-2. **Execute Database Migrations**:
-   Run database migrations as a release phase:
+**API, worker, database and Redis (Render):**
+1. Push the repo to GitHub, then in Render choose **New > Blueprint** and select the repo. Render reads `render.yaml`.
+2. Fill the `sync: false` values when prompted: `GROQ_API_KEY`, `RESEND_API_KEY`, `MAIL_FROM`, `SENTRY_DSN`, `S3_*`, `WEB_ORIGIN`. `JWT_ACCESS_SECRET` is generated for you and shared by the API and worker.
+3. Migrations run automatically before each API deploy (`preDeployCommand`: `prisma migrate deploy`, version pinned to 6.19.3).
+4. Verify health:
    ```bash
-   npx prisma migrate deploy
-   ```
-3. **Deploy API Service**:
-   Start process: `node dist/main.js`.
-4. **Deploy Worker Service**:
-   Start process: `node dist/worker.js`.
-5. **Verify Health**:
-   Query readiness probe:
-   ```bash
-   curl -f https://api.worktrail.in/api/v1/health/ready
+   curl -f https://<api-host>/api/v1/health/ready
    # Expected response: {"db":"up","redis":"up"}
    ```
+
+**Web (Vercel):**
+1. Import the same repo as a new project. Set **Root Directory** to `apps/web` and enable **Include source files outside of the Root Directory**.
+2. The install and build commands come from `apps/web/vercel.json`.
+3. Set `API_URL` to the Render API URL, plus the Sentry and token TTL variables from the table above.
+4. Set the API's `WEB_ORIGIN` to the final Vercel domain (CORS and invite links use it), then redeploy the API.
+
+**Mobile:** the EAS `preview` and `production` profiles point at `https://api.worktrail.in`. Either map that domain to the Render API or change `EXPO_PUBLIC_API_URL` in `apps/mobile/eas.json` before building.
 
 ---
 
@@ -75,18 +81,18 @@
 
 ### Scaling the Worker
 When background jobs increase (e.g. bulk 30-day PDF report generation):
-1. In Railway, scale Worker replicas from `1` to `2` or `3`.
+1. In Render, scale the worker instances from `1` to `2` or `3`.
 2. BullMQ automatically distributes tasks across all worker instances.
-3. Monitor Redis memory and Anthropic rate limits.
+3. Monitor Redis memory and Groq rate limits.
 
 ### Rotating `JWT_ACCESS_SECRET`
 To rotate `JWT_ACCESS_SECRET` without sudden session invalidation:
-1. Update `JWT_ACCESS_SECRET` in Railway dashboard and redeploy.
+1. Update `JWT_ACCESS_SECRET` in the Render shared environment group and redeploy the API and worker.
 2. Active access tokens (15-min TTL) expire naturally.
 3. Refresh tokens stored in PostgreSQL will reissue valid new access tokens upon next refresh.
 
 ### Rolling Back Deployments
-1. In Railway service deployment history, select the previous stable build and click **Rollback**.
+1. In the Render service's Deploys list, choose the previous stable deploy and click **Rollback** (and promote the previous deployment on Vercel for the web app).
 2. If schema changes need rollback, inspect migrations and apply reverse SQL migration before reverting code.
 
 ### Troubleshooting: Dashboard Slow or Summaries Delayed
@@ -97,7 +103,7 @@ To rotate `JWT_ACCESS_SECRET` without sudden session invalidation:
    SELECT id, status, created_at FROM generated_summaries WHERE status = 'QUEUED' ORDER BY created_at ASC LIMIT 10;
    ```
 3. **Check Worker Logs**:
-   Look for Anthropic API timeouts, rate-limit 429 errors, or Chromium crashes in the PDF generation jobs.
+   Look for Groq API timeouts, rate-limit 429 errors, or Chromium crashes in the PDF generation jobs.
 4. **Inspect Sentry**:
    Verify unresolved errors tagged with `worker` or `api`.
 

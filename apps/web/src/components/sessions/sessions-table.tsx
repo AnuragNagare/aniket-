@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { formatInTimeZone } from 'date-fns-tz';
-import { sessionLabel, type WorkSessionsResponse } from '@worktrail/types';
+import { sessionLabel, type WorkSessionRow, type WorkSessionsResponse } from '@worktrail/types';
 import { cn } from '@/lib/cn';
 import { formatMinutes } from '@/lib/format';
 
@@ -11,7 +11,7 @@ const TONE: Record<string, string> = {
   'Closed by admin': 'bg-canvas text-ink-700',
 };
 
-export function SessionsTable({ data }: { data: WorkSessionsResponse }) {
+export function SessionsTable({ data, onClose }: { data: WorkSessionsResponse; onClose?: (s: WorkSessionRow) => void }) {
   const tz = data.timezone;
   const f = (iso: string, p: string) => formatInTimeZone(new Date(iso), tz, p);
   if (data.items.length === 0) return <p className="px-5 py-10 text-center text-ink-500">No work sessions in this period.</p>;
@@ -19,7 +19,7 @@ export function SessionsTable({ data }: { data: WorkSessionsResponse }) {
     <table className="w-full text-left text-sm">
       <thead className="border-b border-line text-ink-500">
         <tr>
-          {['Employee', 'Date', 'Start', 'End', 'Duration', 'Locations', 'Status'].map((h) => (
+          {['Employee', 'Date', 'Start', 'End', 'Duration', 'Locations', 'Status', ...(onClose ? [''] : [])].map((h) => (
             <th key={h} scope="col" className="px-5 py-3 font-medium">
               {h}
             </th>
@@ -49,6 +49,15 @@ export function SessionsTable({ data }: { data: WorkSessionsResponse }) {
               <td className="px-5 py-3">
                 <span className={cn('rounded-full px-2.5 py-1 text-xs font-semibold', TONE[label])}>{label}</span>
               </td>
+              {onClose ? (
+                <td className="px-5 py-3 text-right">
+                  {s.status === 'ACTIVE' ? (
+                    <button type="button" onClick={() => onClose(s)} className="rounded-input bg-cta px-3 py-1.5 font-semibold text-white">
+                      Close session
+                    </button>
+                  ) : null}
+                </td>
+              ) : null}
             </tr>
           );
         })}

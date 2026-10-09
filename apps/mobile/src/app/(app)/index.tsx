@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
+import * as Device from 'expo-device';
 import { useAuthStore } from '../../auth/auth-store';
 import { useMe } from '../../auth/use-me';
 import { Button } from '../../components/Button';
@@ -26,6 +27,7 @@ import {
 } from '../../sessions/use-work-session';
 import {
   dismissBatteryTip,
+  batteryStepsFor,
   openBatterySettings,
   shouldShowBatteryTip,
 } from '../../tracking/battery';
@@ -44,6 +46,7 @@ export default function HomeScreen() {
   const [message, setMessage] = useState<string | null>(null);
   const [keepWorking, setKeepWorking] = useState(false);
   const [showBatteryTip, setShowBatteryTip] = useState(false);
+  const brandTip = batteryStepsFor(Device.manufacturer);
 
   useEffect(() => {
     if (work.session && work.lastStartMode === 'background') {
@@ -168,6 +171,11 @@ export default function HomeScreen() {
               <Notice>
                 Some phones stop apps in the background to save battery. To keep your work day recorded, let Work Trail run in the background.
               </Notice>
+              {brandTip ? (
+                <Notice>
+                  {brandTip.brand}: {brandTip.steps}
+                </Notice>
+              ) : null}
               <Button
                 title="Open battery settings"
                 variant="secondary"

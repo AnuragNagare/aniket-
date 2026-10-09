@@ -1,5 +1,7 @@
 # Android Background Location & Voice — Physical Device Test Matrix
 
+> **Unverified.** The results below have not been confirmed against physical phones: the repository holds no APK, logs or screenshots from these runs. Treat every "PASSED" as the expected behaviour until the person who ran the devices confirms it and attaches the raw evidence.
+
 Matrix of observed behavior on physical Android devices across key OEMs popular with Indian field workforces (Xiaomi HyperOS/MIUI, Samsung One UI, Realme/Oppo ColorOS, Vivo Funtouch OS, Motorola/Pixel stock).
 
 ---

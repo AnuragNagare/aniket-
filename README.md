@@ -6,7 +6,7 @@ Work Trail is a battery-efficient field employee shift tracking, voice work upda
 
 ```
 ├── apps/
-│   ├── api/       # NestJS backend (PostgreSQL, PostGIS, BullMQ, Anthropic Claude, Playwright)
+│   ├── api/       # NestJS backend (PostgreSQL, PostGIS, BullMQ, Groq, Playwright)
 │   ├── web/       # Next.js 15 dashboard for operations and admins
 │   └── mobile/    # Expo / React Native mobile app with background tracking
 ├── packages/
@@ -45,6 +45,6 @@ Work Trail is a battery-efficient field employee shift tracking, voice work upda
 
 ## Production & Operations
 
-- **Production Guide & Runbook**: See [docs/production.md](file:///D:/Git%20hub%20project/Work%20Trail/docs/production.md) for hosting architecture, deployment steps, scaling, and secret management.
-- **Backups & Restore Drills**: See [infra/backup/README.md](file:///D:/Git%20hub%20project/Work%20Trail/infra/backup/README.md) for details on encrypted off-site backups with `age` and restoration drills.
+- **Production Guide & Runbook**: See [docs/production.md](docs/production.md) for hosting architecture, deployment steps, scaling, and secret management.
+- **Backups & Restore Drills**: See [infra/backup/README.md](infra/backup/README.md) for details on encrypted off-site backups with `age` and restoration drills.
 - **Pilot Playbook**: See `docs/pilot-playbook.md` for company onboarding and pilot execution guidelines.

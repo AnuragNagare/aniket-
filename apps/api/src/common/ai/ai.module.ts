@@ -1,7 +1,7 @@
 import { Global, Logger, Module } from '@nestjs/common';
 import { ENV, type Env } from '../../config/env.js';
 import { AI_CLIENT, type AiClient } from './ai-client.js';
-import { AnthropicAiClient } from './anthropic.ai-client.js';
+import { GroqAiClient } from './groq.ai-client.js';
 import { FakeAiClient } from './fake.ai-client.js';
 import type { AiLog } from './structured-call.js';
 
@@ -24,7 +24,7 @@ export const fakeAiClientInstance = new FakeAiClient();
         if (env.NODE_ENV === 'test') {
           return fakeAiClientInstance;
         }
-        return new AnthropicAiClient(env.ANTHROPIC_API_KEY ?? '');
+        return new GroqAiClient(env.GROQ_API_KEY ?? '');
       },
       inject: [ENV],
     },

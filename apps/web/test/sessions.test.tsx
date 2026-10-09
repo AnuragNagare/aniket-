@@ -1,5 +1,5 @@
-import { render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, render, screen, within } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import type { WorkSessionsResponse } from '@worktrail/types';
 import { SessionsTable } from '@/components/sessions/sessions-table';
 
@@ -47,6 +47,14 @@ describe('SessionsTable', () => {
     expect(within(amit).getByText('110')).toBeInTheDocument();
     expect(within(screen.getByRole('row', { name: /Vikram Rao/ })).getByText('Left running')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Vikram Rao' })).toHaveAttribute('href', '/app/employees/e2/hours');
+  });
+
+  it('offers Close session only on active rows and reports which row was chosen', () => {
+    const onClose = vi.fn();
+    render(<SessionsTable data={data} onClose={onClose} />);
+    expect(within(screen.getByRole('row', { name: /Amit Kumar/ })).queryByRole('button', { name: 'Close session' })).toBeNull();
+    fireEvent.click(within(screen.getByRole('row', { name: /Vikram Rao/ })).getByRole('button', { name: 'Close session' }));
+    expect(onClose).toHaveBeenCalledWith(expect.objectContaining({ id: 's2', employeeId: 'e2' }));
   });
 
   it('explains an empty result', () => {

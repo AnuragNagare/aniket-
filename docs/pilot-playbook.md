@@ -13,12 +13,12 @@ Every box must be signed off before any field employee installs the WorkTrail ap
   - Signed off by legal counsel, OR explicit written pilot waiver from WorkTrail leadership on file.
 - [ ] **Production Smoke Test Passed**
   - Full flow tested on production infrastructure: signup, employee invite, login, consent prompt, 30 min tracking, voice update, AI summary generation, monthly report generation, data export, employee erasure, and `ops:erase-company`.
-  - Documented with timestamps in [`docs/production.md`](file:///D:/Git%20hub%20project/Work%20Trail/docs/production.md).
+  - Documented with timestamps in [`docs/production.md`](../docs/production.md).
 - [ ] **Database Restore Drill Completed**
   - Encrypted backup created and restored to an isolated scratch database.
-  - Row counts matched production. Documented in [`infra/backup/README.md`](file:///D:/Git%20hub%20project/Work%20Trail/infra/backup/README.md).
+  - Row counts matched production. Documented in [`infra/backup/README.md`](../infra/backup/README.md).
 - [ ] **Android Device Matrix Sign-Off**
-  - Each pilot company's primary device brands (Samsung, Xiaomi/Redmi, Realme, Vivo, OnePlus) verified against [`docs/device-matrix.md`](file:///D:/Git%20hub%20project/Work%20Trail/docs/device-matrix.md).
+  - Each pilot company's primary device brands (Samsung, Xiaomi/Redmi, Realme, Vivo, OnePlus) verified against [`docs/device-test-android.md`](../docs/device-test-android.md).
   - Power management / background autostart bypass instructions confirmed for their specific OS versions.
 - [ ] **Support Channel Live**
   - Dedicated WhatsApp Business / phone support number and support email established and manned during pilot business hours (08:00–20:00 IST).
@@ -87,7 +87,7 @@ Conduct a live video or on-site session with the company owner and at least 2 fi
 4. Grant Notification permission (required for foreground tracking service).
 
 #### 00:30–00:40 — OEM Battery & Autostart Optimization
-Walk each employee through their brand-specific settings (refer to [`docs/device-matrix.md`](file:///D:/Git%20hub%20project/Work%20Trail/docs/device-matrix.md)):
+Walk each employee through their brand-specific settings (refer to [`docs/device-test-android.md`](../docs/device-test-android.md)):
 - **Xiaomi / Redmi / POCO (MIUI / HyperOS):**
   - Settings → Apps → Manage Apps → WorkTrail → Enable **Autostart**.
   - Battery Saver → Set to **No restrictions**.
@@ -146,7 +146,7 @@ Walk each employee through their brand-specific settings (refer to [`docs/device
 | Speed Fasteners | 2026-11-05 | Hindi speech in noisy street missed 2 words | Medium | Recommended holding phone closer; logged whisper model prompt tuning. |
 
 ### Monthly Routine
-- [ ] **Run Backup & Restore Drill:** Follow [`infra/backup/README.md`](file:///D:/Git%20hub%20project/Work%20Trail/infra/backup/README.md) to restore production database backup into an isolated scratch instance, verify record counts, and document drill duration.
+- [ ] **Run Backup & Restore Drill:** Follow [`infra/backup/README.md`](../infra/backup/README.md) to restore production database backup into an isolated scratch instance, verify record counts, and document drill duration.
 
 ---
 

@@ -20,7 +20,7 @@ const done: PeriodSummaryDto = {
   status: 'COMPLETE',
   sourceUpdateCount: 7,
   sourceSessionMinutes: 1290,
-  modelName: 'claude-opus-5-5',
+  modelName: 'openai/gpt-oss-120b',
   generatedAt: '2026-10-11T13:00:00.000Z',
   requestedAt: '2026-10-11T12:59:00.000Z',
   report: {

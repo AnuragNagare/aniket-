@@ -85,7 +85,7 @@ describe('renderReportHtml', () => {
       },
       sourceUpdateCount: 2,
       sourceSessionMinutes: 480,
-      modelName: 'claude-opus-5-5',
+      modelName: 'openai/gpt-oss-120b',
       generatedAt: '2026-10-05T12:00:00.000Z',
       requestedAt: '2026-10-05T11:59:00.000Z',
     } as PeriodSummaryDto,

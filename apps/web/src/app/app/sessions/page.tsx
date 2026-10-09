@@ -4,7 +4,8 @@ import type { MeResponse, WorkSessionsResponse } from '@worktrail/types';
 import { Card } from '@/components/ui/card';
 import { RangePicker } from '@/components/employee-detail/range-picker';
 import { SessionsFilters } from '@/components/sessions/sessions-filters';
-import { SessionsTable } from '@/components/sessions/sessions-table';
+import { SessionsPanel } from '@/components/sessions/sessions-panel';
+import { closeSession } from '../employees/[id]/actions';
 import { pageRange, rangeQuery, type SearchParams } from '@/lib/date-range';
 import { serverApi } from '@/lib/server-api';
 
@@ -53,7 +54,7 @@ export default async function WorkSessionsPage({ searchParams }: Props) {
           status={typeof sp.status === 'string' ? sp.status : ''}
           q={typeof sp.q === 'string' ? sp.q : ''}
         />
-        <SessionsTable data={data} />
+        <SessionsPanel data={data} action={closeSession} />
         <div className="flex items-center justify-between border-t border-line px-5 py-3 text-sm text-ink-500">
           <p>{data.total} sessions</p>
           {totalPages > 1 ? (

@@ -55,7 +55,7 @@ describe('per-update AI summaries', () => {
     expect(res.body.update).toMatchObject({ summaryStatus: 'QUEUED', aiSummary: null });
     await until(async () => (await prisma.workUpdate.findUniqueOrThrow({ where: { id } })).summaryStatus === 'COMPLETE');
     const row = await prisma.workUpdate.findUniqueOrThrow({ where: { id } });
-    expect(row).toMatchObject({ aiSummary: 'Installation done; one sensor to replace.', modelName: 'claude-opus-5-5', text: expect.stringContaining('Sai Kripa') });
+    expect(row).toMatchObject({ aiSummary: 'Installation done; one sensor to replace.', modelName: 'openai/gpt-oss-20b', text: expect.stringContaining('Sai Kripa') });
     expect(row.aiStructuredData).toMatchObject({ followUps: ['Replace sensor'], confidence: 'HIGH' });
     expect(ai.calls[0]!.user).not.toMatch(/Amit|@|latitude/);
   });

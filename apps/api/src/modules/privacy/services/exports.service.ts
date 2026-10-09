@@ -18,7 +18,7 @@ function escapeCsv(val: unknown): string {
       ? val.toISOString()
       : typeof val === 'object'
         ? JSON.stringify(val)
-        : String(val);
+        : String(val as string | number | boolean | bigint);
   if (/^[=+\-@\t\r]/.test(str)) {
     str = "'" + str;
   }

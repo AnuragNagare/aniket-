@@ -103,7 +103,7 @@ describe('period AI summaries (admin)', () => {
     const getRes = await get(admin.token, `/employees/${emp.id}/summaries?from=2026-10-05&to=2026-10-05`).expect(200);
     expect(getRes.body).toMatchObject({
       status: 'COMPLETE',
-      modelName: 'claude-opus-5-5',
+      modelName: 'openai/gpt-oss-120b',
       report: expect.objectContaining({ overview: expect.any(String) }),
     });
 

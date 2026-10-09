@@ -43,6 +43,7 @@ const FIXTURES: Record<string, (ctx: TestContext) => { body?: any; params?: Reco
   'POST /api/v1/auth/reset-password': () => ({ body: { token: 'tok', password: 'Pass' } }),
   'GET /api/v1/auth/me': () => ({}),
   'GET /api/v1/health': () => ({}),
+  'GET /api/v1/health/ready': () => ({}),
   'GET /api/v1/employees/invitations/:token': () => ({ params: { token: 'some-token' } }),
   'POST /api/v1/employees/invitations/:token/accept': () => ({
     params: { token: 'some-token' },

@@ -1,14 +1,13 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import Anthropic from '@anthropic-ai/sdk';
 import { UpdateSummarySchema } from '@worktrail/types';
 import { AI_CLIENT, type AiClient } from '../../../common/ai/ai-client.js';
+import { TransientAiError } from '../../../common/ai/ai-errors.js';
 import { structuredCall } from '../../../common/ai/structured-call.js';
 import { RetryableJobError } from '../../../common/queue/job-errors.js';
 import { ENV, type Env } from '../../../config/env.js';
 import { PrismaService } from '../../../database/prisma.service.js';
 import { UPDATE_SYSTEM_PROMPT, updatePayload } from '../prompts.js';
 
-const TRANSIENT = [Anthropic.RateLimitError, Anthropic.InternalServerError, Anthropic.APIConnectionError];
 
 @Injectable()
 export class UpdateSummaryService {
@@ -42,7 +41,7 @@ export class UpdateSummaryService {
           : { summaryStatus: 'FAILED', summaryError: r.reason },
       });
     } catch (e) {
-      if (TRANSIENT.some((T) => e instanceof T)) {
+      if (e instanceof TransientAiError) {
         if (opts.finalAttempt) {
           await this.prisma.workUpdate.update({ where: { id: updateId }, data: { summaryStatus: 'FAILED', summaryError: 'AI_UNAVAILABLE' } });
           return;

@@ -16,9 +16,9 @@ export const EnvSchema = z
     AI_ENABLED: z
       .preprocess((v) => (v === 'false' || v === false ? false : true), z.boolean())
       .default(true),
-    ANTHROPIC_API_KEY: z.string().optional(),
-    AI_UPDATE_MODEL: z.string().default('claude-opus-5-5'),
-    AI_REPORT_MODEL: z.string().default('claude-opus-5-5'),
+    GROQ_API_KEY: z.string().optional(),
+    AI_UPDATE_MODEL: z.string().default('openai/gpt-oss-20b'),
+    AI_REPORT_MODEL: z.string().default('openai/gpt-oss-120b'),
     REPORT_STORAGE_DIR: z.string().default('./storage/reports'),
     REPORT_TTL_DAYS: z.coerce.number().int().positive().default(30),
     TRUST_PROXY: z
@@ -35,6 +35,8 @@ export const EnvSchema = z
     ALLOW_LOCAL_STORAGE: z
       .preprocess((v) => (v === 'true' || v === true ? true : false), z.boolean())
       .default(false),
+    RESEND_API_KEY: z.string().optional(),
+    MAIL_FROM: z.string().default('Work Trail <no-reply@worktrail.in>'),
     EXPORT_TTL_DAYS: z.coerce.number().int().positive().default(7),
     RETENTION_RUN_HOUR_IST: z.coerce.number().int().min(0).max(23).default(2),
   })
@@ -46,11 +48,11 @@ export const EnvSchema = z
         message: 'REDIS_URL is required when QUEUE_DRIVER=bullmq',
       });
     }
-    if (data.NODE_ENV === 'production' && data.AI_ENABLED && !data.ANTHROPIC_API_KEY) {
+    if (data.NODE_ENV === 'production' && data.AI_ENABLED && !data.GROQ_API_KEY) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['ANTHROPIC_API_KEY'],
-        message: 'ANTHROPIC_API_KEY is required in production when AI is enabled',
+        path: ['GROQ_API_KEY'],
+        message: 'GROQ_API_KEY is required in production when AI is enabled',
       });
     }
     if (data.NODE_ENV === 'production' && !data.SENTRY_DSN) {
