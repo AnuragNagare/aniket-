@@ -2,7 +2,6 @@ import { describe, expect, it, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import type { INestApplication } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { randomUUID } from 'node:crypto';
 import { createApp } from '../../src/bootstrap.js';
 import { resetDb } from '../helpers/db.js';
 import { signupAs, employeeAs } from '../helpers/auth.js';

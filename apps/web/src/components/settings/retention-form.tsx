@@ -84,7 +84,7 @@ export function RetentionForm({ initialDays, action }: Props) {
           <div>
             <p className="font-semibold">Retention decrease warning</p>
             <p className="mt-0.5">
-              Locations older than {daysValue} days will be deleted tonight. This can't be undone.
+              Locations older than {daysValue} days will be deleted tonight. This can&apos;t be undone.
             </p>
           </div>
         </div>

@@ -62,6 +62,8 @@ export class TokensService {
       where: { id },
       include: { user: true },
     });
+    if (!row) throw sessionExpired();
+
     if (row.user.status === 'DISABLED') {
       throw new AppError(401, 'ACCOUNT_DISABLED', 'This account has been disabled.');
     }

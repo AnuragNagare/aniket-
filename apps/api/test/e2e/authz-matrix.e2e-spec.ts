@@ -286,7 +286,7 @@ describe('Authorisation matrix across every route', () => {
             if (cleanBase === '/') cleanBase = '';
             let cleanSub = subPath ? (subPath.startsWith('/') ? subPath : `/${subPath}`) : '';
             if (cleanSub === '/') cleanSub = '';
-            const fullPath = `/api/v1${cleanBase}${cleanSub}` || '/api/v1';
+            const fullPath = `/api/v1${cleanBase}${cleanSub}`;
 
             routes.push({
               key: `${httpMethod} ${fullPath}`,

@@ -77,7 +77,7 @@ export function DeletionRequestsTable({ requests }: Props) {
                   </Link>
                   <Button
                     variant="secondary"
-                    size="sm"
+                    className="h-8 w-auto px-3 text-xs inline-flex"
                     onClick={() => {
                       setSelectedDismissId(req.id);
                       setDismissNote('');
@@ -115,14 +115,14 @@ export function DeletionRequestsTable({ requests }: Props) {
             <div className="flex justify-end gap-2">
               <Button
                 variant="secondary"
-                size="sm"
+                className="h-10 w-auto px-4 text-sm"
                 onClick={() => setSelectedDismissId(null)}
                 disabled={busy}
               >
                 Cancel
               </Button>
               <Button
-                size="sm"
+                className="h-10 w-auto px-4 text-sm"
                 onClick={handleDismiss}
                 disabled={busy}
               >

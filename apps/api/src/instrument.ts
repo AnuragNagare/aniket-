@@ -46,13 +46,14 @@ export function scrubEvent<T extends Record<string, any>>(event: T): T {
     }
   }
 
-  if (event.extra) {
-    event.extra = scrubObject(event.extra) as Record<string, unknown>;
+  const ev = event as any;
+  if (ev.extra) {
+    ev.extra = scrubObject(ev.extra) as Record<string, unknown>;
   }
 
-  if (event.user) {
-    const userId = event.user.id;
-    event.user = userId ? { id: userId } : undefined;
+  if (ev.user) {
+    const userId = ev.user.id;
+    ev.user = userId ? { id: userId } : undefined;
   }
 
   return event;
@@ -67,7 +68,6 @@ if (dsn) {
     dsn,
     environment,
     tracesSampleRate: isProd ? 0.1 : 0,
-    sendDefaultPii: false,
     beforeSend(event) {
       return scrubEvent(event);
     },

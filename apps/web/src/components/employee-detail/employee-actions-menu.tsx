@@ -4,8 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MoreVertical, Download, Lock, UserX, UserCheck, Trash2 } from 'lucide-react';
 import type { DataExportDto, EmployeeDetail } from '@worktrail/types';
-import { Button } from '@/components/ui/button';
-import { FormAlert } from '@/components/auth/form-alert';
 import { EraseDialog } from './erase-dialog';
 import {
   deactivateEmployee,
@@ -29,7 +27,7 @@ export function EmployeeActionsMenu({ employee, initialExport }: Props) {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const isDeactivated = employee.status === 'INACTIVE' || employee.status === 'INVITED';
+  const isDeactivated = employee.deactivated || employee.account === 'INVITED';
 
   const handleDeactivate = async () => {
     setError(null);
@@ -104,16 +102,16 @@ export function EmployeeActionsMenu({ employee, initialExport }: Props) {
           <span className="text-xs text-ink-500">Preparing…</span>
         )}
 
-        <Button
-          variant="secondary"
-          size="sm"
+        <button
+          type="button"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Actions"
           aria-haspopup="true"
           aria-expanded={menuOpen}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-input border border-brand-200 bg-surface text-brand-700 hover:bg-brand-50 transition"
         >
           <MoreVertical className="size-4" />
-        </Button>
+        </button>
       </div>
 
       {menuOpen && (

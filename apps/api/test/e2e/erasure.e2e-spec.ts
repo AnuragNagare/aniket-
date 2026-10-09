@@ -80,7 +80,7 @@ describe('Employee erasure (e2e)', () => {
 
     const reportKey = `${adminA.user.companyId}/${randomUUID()}.pdf`;
     await storage.put(reportKey, Buffer.from('%PDF-1.4 test'));
-    const report = await prisma.report.create({
+    await prisma.report.create({
       data: {
         companyId: adminA.user.companyId,
         employeeId: empA.employee.id,
@@ -95,7 +95,7 @@ describe('Employee erasure (e2e)', () => {
 
     const exportKey = `${adminA.user.companyId}/${randomUUID()}.zip`;
     await storage.put(exportKey, Buffer.from('PK-zip-test'));
-    const exportRow = await prisma.dataExport.create({
+    await prisma.dataExport.create({
       data: {
         companyId: adminA.user.companyId,
         employeeId: empA.employee.id,

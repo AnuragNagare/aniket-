@@ -177,7 +177,7 @@ describe('Location retention purge service (e2e)', () => {
     });
 
     // Also seed 12,000 old points (> 120 days old) in Company B to test batched loop (BATCH=5000)
-    const extraPoints = Array.from({ length: 12_000 }, (_, i) => ({
+    const extraPoints = Array.from({ length: 12_000 }, () => ({
       companyId: adminB.user.companyId,
       employeeId: empB.employee.id,
       sessionId: sessB.id,

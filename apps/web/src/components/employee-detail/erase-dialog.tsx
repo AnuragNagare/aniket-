@@ -10,7 +10,7 @@ type Props = {
   onClose: () => void;
   employeeName: string;
   employeeId: string;
-  onErase: (employeeId: string, confirmName: string) => Promise<MutationResult<any>>;
+  onErase: (employeeId: string, confirmName: string) => Promise<MutationResult<unknown>>;
   onSuccess?: () => void;
 };
 

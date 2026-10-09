@@ -21,6 +21,9 @@ vi.mock('@/app/app/employees/[id]/admin-actions', () => ({
       employeeId: 'e1',
       status: 'QUEUED',
       createdAt: new Date().toISOString(),
+      byteSize: null,
+      generatedAt: null,
+      expiresAt: null,
     },
   }),
   eraseEmployee: vi.fn().mockResolvedValue({ ok: true, data: { status: 'QUEUED' } }),
@@ -33,16 +36,19 @@ const mockActiveEmployee: EmployeeDetail = {
   phone: '9876543210',
   employeeCode: 'EMP001',
   designation: 'Field Officer',
-  status: 'ACTIVE',
+  status: 'OFF_DUTY',
+  account: 'ACTIVE',
+  deactivated: false,
   joinedAt: '2026-01-01T00:00:00.000Z',
   workingSince: null,
   lastSeenAt: null,
-  activeSession: null,
+  consentedAt: null,
+  consentVersion: null,
 };
 
 const mockInactiveEmployee: EmployeeDetail = {
   ...mockActiveEmployee,
-  status: 'INACTIVE',
+  deactivated: true,
 };
 
 describe('Employee actions & erasure (web)', () => {
@@ -113,6 +119,9 @@ describe('Employee actions & erasure (web)', () => {
       employeeId: 'e1',
       status: 'QUEUED',
       createdAt: new Date().toISOString(),
+      byteSize: null,
+      generatedAt: null,
+      expiresAt: null,
     };
     const { unmount } = render(
       <EmployeeActionsMenu employee={mockActiveEmployee} initialExport={queuedExport} />,
@@ -127,6 +136,9 @@ describe('Employee actions & erasure (web)', () => {
       employeeId: 'e1',
       status: 'READY',
       createdAt: new Date().toISOString(),
+      byteSize: 1024,
+      generatedAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 86400000).toISOString(),
     };
     render(
       <EmployeeActionsMenu employee={mockActiveEmployee} initialExport={readyExport} />,

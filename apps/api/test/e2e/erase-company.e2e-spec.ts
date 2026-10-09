@@ -39,7 +39,7 @@ describe('Ops: erase company (e2e)', () => {
     const companyAName = companyA.name;
 
     const empA1 = await employeeAs(app, prisma, companyAId);
-    const empA2 = await employeeAs(app, prisma, companyAId);
+    await employeeAs(app, prisma, companyAId);
 
     // Seed session, points, update for empA1
     const sessionA1 = await prisma.workSession.create({
