@@ -18,3 +18,4 @@ apps/mobile/android/app/release/
 .superpowers/
 *.tsbuildinfo
 apps/api/storage/
+pilot-metrics-*.csv

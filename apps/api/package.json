@@ -29,7 +29,8 @@
     "worker": "node scripts/with-env.mjs node dist/worker.js",
     "worker:dev": "node scripts/with-env.mjs tsx watch src/worker.ts",
     "pdf:install": "playwright install chromium",
-    "ops:erase-company": "node scripts/with-env.mjs tsx scripts/erase-company.ts"
+    "ops:erase-company": "node scripts/with-env.mjs tsx scripts/erase-company.ts",
+    "ops:pilot-metrics": "node scripts/with-env.mjs tsx scripts/pilot-metrics.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
