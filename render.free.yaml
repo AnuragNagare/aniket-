@@ -26,9 +26,9 @@ services:
     dockerfilePath: ./apps/api/Dockerfile
     dockerContext: .
     healthCheckPath: /api/v1/health/ready
-    # Free web services have no pre-deploy step, so migrations run at start. Version pinned because the
-    # production image carries no Prisma CLI.
-    dockerCommand: sh -c "npx --yes prisma@6.19.3 migrate deploy --schema prisma/schema.prisma && node dist/main.js"
+    # Free web services have no pre-deploy step, so this script migrates and then starts the server.
+    # A single path with no quoting: Render did not run a quoted `sh -c "..."` string as intended.
+    dockerCommand: /app/start.sh
     envVars:
       - key: DATABASE_URL
         fromDatabase: { name: worktrail-db, property: connectionString }

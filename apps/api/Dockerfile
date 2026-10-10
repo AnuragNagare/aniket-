@@ -41,6 +41,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /prod/app /app
 COPY --from=builder /app/apps/api/dist /app/dist
 COPY --from=builder /app/apps/api/prisma /app/prisma
+COPY --from=builder --chmod=755 /app/apps/api/start.sh /app/start.sh
 
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 RUN npx playwright install --with-deps chromium \
