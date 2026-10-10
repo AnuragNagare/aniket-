@@ -145,3 +145,24 @@ When a customer formally requests complete account and data erasure in writing:
    - Deletes all user accounts, invitations, refresh tokens, and password reset tokens.
    - Updates company name to "Deleted company" and sets retention to 30 days.
    - Preserves audit log history and records a final `company.erased` audit entry with counts.
+
+---
+
+## 7. Free testing setup (`render.free.yaml`)
+
+For trying the app and building a test APK with no card. Not for the pilot: use `render.yaml` (section 3) for that.
+
+**Render:** New > Blueprint, pick the repo, and set **Blueprint file path** to `render.free.yaml`. It creates one free web service and one free Postgres. Fill `WEB_ORIGIN`, `GROQ_API_KEY`, `RESEND_API_KEY`, `MAIL_FROM` and `SENTRY_DSN` when asked.
+
+**Limits to expect:**
+- The API sleeps when idle, so the first request after a pause is slow. Background location uploads from phones will wake it, but expect delays.
+- Free Postgres is time-limited by Render. Treat all data as disposable.
+- No worker and no Redis: jobs run inside the API (`QUEUE_DRIVER=inline`). A job in flight when the API restarts is retried only by the 2-minute sweeper.
+- **The nightly location purge does not run.** Only the worker schedules it, so old precise locations are not deleted in this setup. Do not use real employee data here.
+- PDFs and exports use local disk, which is wiped on every deploy or restart.
+- Chromium for PDFs may exceed a free instance's memory. This is untested.
+- Migrations run at container start through a pinned `npx prisma@6.19.3`, because free services have no pre-deploy step. This path has not been run on Render yet.
+
+**Web (Vercel):** unchanged from section 3. Set `API_URL` to the free Render URL.
+
+**Moving to the pilot later:** deploy `render.yaml` instead and point the web `API_URL` and the mobile `EXPO_PUBLIC_API_URL` at the new API.

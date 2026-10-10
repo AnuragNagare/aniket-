@@ -1,0 +1,49 @@
+# FREE-TIER TESTING blueprint: one API service and one Postgres, no worker, no Redis, no card needed.
+# Use render.yaml (paid) for the real pilot. Point Render's Blueprint at this file via
+# "Blueprint file path" = render.free.yaml.
+#
+# What this trades away (see docs/production.md, "Free testing setup"):
+#  - The API sleeps when idle, so the first request can take ~30s+.
+#  - Free Postgres expires after a limited period (check Render's current terms) - testing data only.
+#  - Jobs run inside the API (QUEUE_DRIVER=inline): no retries across restarts, and the nightly
+#    location purge is NOT scheduled (only the worker does that).
+#  - PDFs/exports are written to local disk, which is wiped on every deploy or restart.
+#  - Chromium for PDFs may run out of memory on a free instance (untested).
+
+databases:
+  - name: worktrail-db
+    databaseName: worktrail
+    plan: free
+    region: singapore
+
+services:
+  - type: web
+    name: worktrail-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/v1/health/ready
+    # Free web services have no pre-deploy step, so migrations run at start. Version pinned because the
+    # production image carries no Prisma CLI.
+    dockerCommand: sh -c "npx --yes prisma@6.19.3 migrate deploy --schema prisma/schema.prisma && node dist/main.js"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: { name: worktrail-db, property: connectionString }
+      - { key: NODE_ENV, value: production }
+      - { key: QUEUE_DRIVER, value: inline }
+      - { key: TRUST_PROXY, value: "true" }
+      - { key: AI_ENABLED, value: "true" }
+      - { key: AI_UPDATE_MODEL, value: openai/gpt-oss-20b }
+      - { key: AI_REPORT_MODEL, value: openai/gpt-oss-120b }
+      - { key: STORAGE_DRIVER, value: local }
+      - { key: ALLOW_LOCAL_STORAGE, value: "true" }
+      - { key: SENTRY_ENVIRONMENT, value: testing }
+      - { key: JWT_ACCESS_SECRET, generateValue: true }
+      # Asked for in the Render dashboard; never stored in git.
+      - { key: WEB_ORIGIN, sync: false } # the Vercel URL, e.g. https://work-trail.vercel.app
+      - { key: GROQ_API_KEY, sync: false }
+      - { key: RESEND_API_KEY, sync: false }
+      - { key: MAIL_FROM, sync: false }
+      - { key: SENTRY_DSN, sync: false } # required in production mode; a free Sentry account is enough
