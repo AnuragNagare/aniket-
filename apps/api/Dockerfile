@@ -12,16 +12,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl python3
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY packages/types/package.json ./packages/types/
 COPY apps/api/package.json ./apps/api/
+# The api postinstall runs `prisma generate`, so the schema must exist before install.
+COPY apps/api/prisma ./apps/api/prisma
 
 RUN pnpm install --frozen-lockfile --filter @worktrail/api...
 
+COPY tsconfig.base.json ./
 COPY packages/types ./packages/types
 COPY apps/api ./apps/api
 
 RUN pnpm --filter @worktrail/types build
-RUN pnpm --filter @worktrail/api prisma generate
+RUN pnpm --filter @worktrail/api exec prisma generate
 RUN pnpm --filter @worktrail/api build
-RUN pnpm deploy --filter @worktrail/api --prod /prod/app
+RUN pnpm deploy --legacy --filter @worktrail/api --prod /prod/app
+# The deployed copy has its own @prisma/client, which needs its own generated client.
+RUN cd /prod/app && npx --yes prisma@6.19.3 generate --schema prisma/schema.prisma
 
 FROM node:22-slim AS runner
 WORKDIR /app
