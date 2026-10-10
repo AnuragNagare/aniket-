@@ -10,7 +10,7 @@
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint src/ test/",
-    "eas-build-post-install": "pnpm --filter @worktrail/types build"
+    "eas-build-post-install": "pnpm --filter @worktrail/types --filter @worktrail/ui build"
   },
   "dependencies": {
     "@expo-google-fonts/barlow": "^0.2.3",
