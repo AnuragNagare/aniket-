@@ -17,6 +17,7 @@
       },
       "env": {
         "EAS_BUILD_PROFILE": "preview",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
         "EXPO_PUBLIC_API_URL": "https://worktrail-api.onrender.com"
       }
     },
@@ -26,6 +27,7 @@
       },
       "env": {
         "EAS_BUILD_PROFILE": "production",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
         "EXPO_PUBLIC_API_URL": "https://worktrail-api.onrender.com"
       }
     }

@@ -4,12 +4,13 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
+    "android": "expo run:android",
     "android:dev": "expo run:android",
     "android:apk": "expo prebuild --platform android && cd android && gradlew.bat assembleRelease",
     "test": "jest",
     "typecheck": "tsc --noEmit",
-    "lint": "oxlint src/ test/"
+    "lint": "oxlint src/ test/",
+    "eas-build-post-install": "pnpm --filter @worktrail/types build"
   },
   "dependencies": {
     "@expo-google-fonts/barlow": "^0.2.3",
