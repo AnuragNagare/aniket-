@@ -1,6 +1,7 @@
 # FREE-TIER TESTING blueprint: one API service and one Postgres, no worker, no Redis, no card needed.
-# Use render.yaml (paid) for the real pilot. Point Render's Blueprint at this file via
-# "Blueprint file path" = render.free.yaml.
+# This is the only blueprint in the repo. Render looks for render.yaml by default, so when creating the
+# Blueprint set "Blueprint file path" = render.free.yaml.
+# The paid pilot layout (worker, Redis, R2 storage) is in git history: git show a32676d:render.yaml
 #
 # What this trades away (see docs/production.md, "Free testing setup"):
 #  - The API sleeps when idle, so the first request can take ~30s+.

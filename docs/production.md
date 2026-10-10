@@ -5,7 +5,7 @@
 | Component | Platform / Host | Region | Notes |
 |---|---|---|---|
 | **Web Dashboard** | Vercel | Mumbai (`bom1`) | Next.js App Router. Project root directory `apps/web`, config in `apps/web/vercel.json` |
-| **API Service** | Render (web service) | Singapore | Docker image (`apps/api/Dockerfile`), defined in `render.yaml` |
+| **API Service** | Render (web service) | Singapore | Docker image (`apps/api/Dockerfile`), defined as a Render Blueprint (the free testing one is `render.free.yaml`; the paid pilot layout is described here and its blueprint is in git history, commit `a32676d`) |
 | **Queue Worker** | Render (background worker) | Singapore | Same image, command `node dist/worker.js`. Runs headless Chromium for PDFs, so use Starter or larger |
 | **PostgreSQL 16** | Render Postgres | Singapore | No PostGIS needed: no migration uses it |
 | **Redis** | Render Key Value | Singapore | BullMQ broker, `noeviction` policy, internal connections only |
@@ -24,7 +24,7 @@
 |---|---|---|---|
 | `NODE_ENV` | API, Worker | No | Set to `production` |
 | `PORT` | API | No | Defaults to `4000` (Render sets `$PORT`) |
-| `DATABASE_URL` | API, Worker | **YES** | Postgres connection string (filled from the Render database by `render.yaml`) |
+| `DATABASE_URL` | API, Worker | **YES** | Postgres connection string (filled from the Render database by the blueprint) |
 | `JWT_ACCESS_SECRET` | API, Worker | **YES** | 64+ random characters for signing JWTs |
 | `ACCESS_TOKEN_TTL_SECONDS`| API | No | Default `900` (15 minutes) |
 | `REFRESH_TOKEN_TTL_DAYS` | API | No | Default `30` (30 days) |
@@ -58,7 +58,7 @@
 ## 3. Deployment & Release Steps
 
 **API, worker, database and Redis (Render):**
-1. Push the repo to GitHub, then in Render choose **New > Blueprint** and select the repo. Render reads `render.yaml`.
+1. Push the repo to GitHub, then in Render choose **New > Blueprint** and select the repo. Set **Blueprint file path** to the blueprint file. For the paid pilot setup, restore `render.yaml` from commit `a32676d` (`git show a32676d:render.yaml > render.yaml`); until then use `render.free.yaml` (section 7).
 2. Fill the `sync: false` values when prompted: `GROQ_API_KEY`, `RESEND_API_KEY`, `MAIL_FROM`, `SENTRY_DSN`, `S3_*`, `WEB_ORIGIN`. `JWT_ACCESS_SECRET` is generated for you and shared by the API and worker.
 3. Migrations run automatically before each API deploy (`preDeployCommand`: `prisma migrate deploy`, version pinned to 6.19.3).
 4. Verify health:
@@ -150,7 +150,7 @@ When a customer formally requests complete account and data erasure in writing:
 
 ## 7. Free testing setup (`render.free.yaml`)
 
-For trying the app and building a test APK with no card. Not for the pilot: use `render.yaml` (section 3) for that.
+For trying the app and building a test APK with no card. Not for the pilot: that needs the paid layout in section 1 (restore `render.yaml` from commit `a32676d`).
 
 **Render:** New > Blueprint, pick the repo, and set **Blueprint file path** to `render.free.yaml`. It creates one free web service and one free Postgres. Fill `WEB_ORIGIN`, `GROQ_API_KEY`, `RESEND_API_KEY`, `MAIL_FROM` and `SENTRY_DSN` when asked.
 
@@ -165,4 +165,4 @@ For trying the app and building a test APK with no card. Not for the pilot: use 
 
 **Web (Vercel):** unchanged from section 3. Set `API_URL` to the free Render URL.
 
-**Moving to the pilot later:** deploy `render.yaml` instead and point the web `API_URL` and the mobile `EXPO_PUBLIC_API_URL` at the new API.
+**Moving to the pilot later:** restore the paid `render.yaml` from commit `a32676d` and deploy that instead and point the web `API_URL` and the mobile `EXPO_PUBLIC_API_URL` at the new API.
