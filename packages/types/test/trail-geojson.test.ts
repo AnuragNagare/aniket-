@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { LocationTrailResponse } from '@worktrail/types';
-import { trailToGeoJson } from '@/lib/trail-geojson';
+import type { LocationTrailResponse } from '../src/employee-activity.js';
+import { trailToGeoJson } from '../src/trail-geojson.js';
 
 const point = (id: string, sessionId: string, min: number, lat: number, quality: 'GOOD' | 'LOW_ACCURACY' = 'GOOD') => ({
   id,

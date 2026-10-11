@@ -17,4 +17,5 @@ export * from './reports.js';
 export * from './privacy.js';
 export * from './settings.js';
 export * from './audit.js';
-
+export * from './period.js';
+export * from './trail-geojson.js';

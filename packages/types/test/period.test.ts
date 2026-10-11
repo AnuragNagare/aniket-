@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseRange, presetRange, rangeQuery } from '@/lib/date-range';
+import { parseRange, presetRange, rangeQuery } from '../src/period.js';
 
 describe('date ranges', () => {
   // 2026-10-07 is a Wednesday.
