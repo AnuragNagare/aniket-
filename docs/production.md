@@ -73,7 +73,7 @@
 3. Set `API_URL` to the Render API URL, plus the Sentry and token TTL variables from the table above.
 4. Set the API's `WEB_ORIGIN` to the final Vercel domain (CORS and invite links use it), then redeploy the API.
 
-**Mobile:** the EAS `preview` and `production` profiles point at `https://api.worktrail.in`. Either map that domain to the Render API or change `EXPO_PUBLIC_API_URL` in `apps/mobile/eas.json` before building.
+**Mobile:** the EAS `preview` and `production` profiles point at `https://worktrail-api.onrender.com`. Change `EXPO_PUBLIC_API_URL` in `apps/mobile/eas.json` if the API moves.
 
 ---
 

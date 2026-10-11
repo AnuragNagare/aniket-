@@ -17,7 +17,7 @@
       },
       "env": {
         "EAS_BUILD_PROFILE": "preview",
-        "EXPO_PUBLIC_API_URL": "https://api.worktrail.in"
+        "EXPO_PUBLIC_API_URL": "https://worktrail-api.onrender.com"
       }
     },
     "production": {
@@ -26,7 +26,7 @@
       },
       "env": {
         "EAS_BUILD_PROFILE": "production",
-        "EXPO_PUBLIC_API_URL": "https://api.worktrail.in"
+        "EXPO_PUBLIC_API_URL": "https://worktrail-api.onrender.com"
       }
     }
   },
