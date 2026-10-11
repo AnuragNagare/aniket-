@@ -70,3 +70,26 @@ FROM location_points;
 SELECT count(*) - count(distinct (employee_id, client_update_id)) AS duplicate_updates
 FROM work_updates;
 ```
+
+---
+
+## 5. Admin and three-button entry flow (Phase 8): checklist for the first real build
+
+**Status: not yet run on a phone.** These screens are covered by Jest tests with the API mocked, but none of the items below has been observed on a real device. The map in particular depends on a native module that only exists in a real build.
+
+| # | Check | Expected | Observed |
+|---|---|---|---|
+| 1 | Open the app signed out | Welcome shows **Get started**, **Sign in**, **Register** | |
+| 2 | **Register** with a new email | Account and company created, lands on the admin Dashboard | |
+| 3 | Register with an email that already exists | "An account with this email already exists. Sign in instead." | |
+| 4 | Close and reopen the app | Admin opens straight to the Dashboard, no sign-in | |
+| 5 | Employees > **Invite employee** | Invite created, **Share link** opens the Android share sheet (WhatsApp, Copy) | |
+| 6 | On a second phone: **Get started**, paste the link, set a password | Joins the company, lands on the employee home | |
+| 7 | Close and reopen the employee app | Employee opens straight to their home, no link needed again | |
+| 8 | Employee taps Start work, sends an update | Admin Dashboard shows "Working now" and the update | |
+| 9 | Admin opens the employee: Overview, Updates, Hours | Numbers and AI summaries (if the AI key is set) match the web dashboard | |
+| 10 | Admin opens the **Map** tab | Orange route, S and E markers, approximate points hollow. If it fails, a list of points with "Open in Maps" appears instead | |
+| 11 | Admin closes an open session (Hours tab or Sessions) | Marked "Closed by admin"; employee app stops tracking on its next sync | |
+| 12 | Employee uses **Sign in** with email and password | Lands on the employee home, not the admin area | |
+| 13 | Sign out from Account | Back to Welcome; reopening the app does not restore the session | |
+| 14 | First request after the free API has been idle | Loading state, then data (can take about a minute) | |

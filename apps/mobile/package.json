@@ -15,9 +15,11 @@
   "dependencies": {
     "@expo-google-fonts/barlow": "^0.2.3",
     "@expo-google-fonts/barlow-semi-condensed": "^0.2.3",
+    "@maplibre/maplibre-react-native": "11.5.0",
     "@react-native-community/netinfo": "^12.0.1",
     "@sentry/react-native": "^8.29.0",
     "@tanstack/react-query": "^5.67.2",
+    "@types/geojson": "^7946.0.16",
     "@worktrail/types": "workspace:*",
     "@worktrail/ui": "workspace:*",
     "date-fns": "^4.1.0",

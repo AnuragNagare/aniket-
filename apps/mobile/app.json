@@ -32,6 +32,7 @@
       "expo-secure-store",
       "expo-font",
       "expo-sqlite",
+      "@maplibre/maplibre-react-native",
       [
         "expo-location",
         {

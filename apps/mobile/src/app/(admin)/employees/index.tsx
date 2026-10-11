@@ -8,6 +8,7 @@ import { useCompanyDay } from '../../../admin/use-company';
 import { useDebounced } from '../../../admin/use-debounced';
 import { ApiError } from '../../../api/client';
 import { EmployeeRow } from '../../../components/admin/EmployeeRow';
+import { Pager } from '../../../components/admin/Pager';
 import { QueryGate } from '../../../components/admin/QueryGate';
 import { Button } from '../../../components/Button';
 import { Chip } from '../../../components/Chip';
@@ -43,8 +44,6 @@ export default function EmployeesScreen() {
       setResendingId(null);
     }
   };
-
-  const totalPages = q.data ? Math.max(1, Math.ceil(q.data.total / q.data.pageSize)) : 1;
 
   return (
     <Screen onRefresh={() => void q.refetch()} refreshing={q.isRefetching}>
@@ -87,15 +86,7 @@ export default function EmployeesScreen() {
             />
           ))
         )}
-        {q.data && totalPages > 1 ? (
-          <View style={styles.pager}>
-            <Button title="Previous" variant="secondary" disabled={page <= 1} onPress={() => setPage((p) => p - 1)} />
-            <Text style={styles.pageText}>
-              Page {page} of {totalPages}
-            </Text>
-            <Button title="Next" variant="secondary" disabled={page >= totalPages} onPress={() => setPage((p) => p + 1)} />
-          </View>
-        ) : null}
+        {q.data ? <Pager page={page} total={q.data.total} pageSize={q.data.pageSize} onChange={setPage} /> : null}
       </QueryGate>
     </Screen>
   );
@@ -105,6 +96,4 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.display, fontSize: 30, color: colors.ink900 },
   chips: { flexDirection: 'row', gap: 8 },
   empty: { fontFamily: fonts.body, fontSize: 16, color: colors.ink500 },
-  pager: { gap: 10, alignItems: 'stretch' },
-  pageText: { fontFamily: fonts.medium, fontSize: 15, color: colors.ink500, textAlign: 'center' },
 });
