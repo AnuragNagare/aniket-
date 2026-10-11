@@ -15,6 +15,7 @@ import {
 } from '@expo-google-fonts/barlow';
 import { BarlowSemiCondensed_700Bold } from '@expo-google-fonts/barlow-semi-condensed';
 import { useAuthStore } from '../auth/auth-store';
+import { homeFor } from '../auth/home-for';
 
 void SplashScreen.preventAutoHideAsync();
 export const queryClient = new QueryClient({
@@ -29,6 +30,7 @@ function RootLayout() {
     BarlowSemiCondensed_700Bold,
   });
   const status = useAuthStore((s) => s.status);
+  const home = useAuthStore((s) => homeFor(s.user?.role));
 
   useEffect(() => {
     void useAuthStore.getState().bootstrap();
@@ -52,8 +54,11 @@ function RootLayout() {
           contentStyle: { backgroundColor: '#FBF8F5' },
         }}
       >
-        <Stack.Protected guard={status === 'signedIn'}>
+        <Stack.Protected guard={status === 'signedIn' && home === 'employee'}>
           <Stack.Screen name="(app)" />
+        </Stack.Protected>
+        <Stack.Protected guard={status === 'signedIn' && home === 'admin'}>
+          <Stack.Screen name="(admin)" />
         </Stack.Protected>
         <Stack.Protected guard={status === 'signedOut'}>
           <Stack.Screen name="(auth)" />
