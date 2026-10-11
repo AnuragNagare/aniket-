@@ -55,12 +55,21 @@
         {
           "microphonePermission": "Work Trail uses the microphone only while you hold the speak button, to turn your words into update text you can edit.",
           "speechRecognitionPermission": "Work Trail turns your speech into text for your work update.",
-          "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "3067fcd8-2ecf-4b71-92ad-5693ae767001"
+      }
+    },
+    "owner": "anuragnagare"
   }
 }

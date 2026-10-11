@@ -32,20 +32,10 @@ describe('Login screen', () => {
     );
   });
 
-  it('shows the server message, including the admin redirect', async () => {
-    signIn.mockRejectedValue(
-      new ApiError(
-        403,
-        'USE_WEB_DASHBOARD',
-        'This app is for field employees. Company admins sign in on the Work Trail website.',
-      ),
-    );
+  it('shows the server message when sign-in fails', async () => {
+    signIn.mockRejectedValue(new ApiError(401, 'INVALID_CREDENTIALS', 'Email or password is incorrect.'));
     render(<LoginScreen />);
-    await submit('rahul@acme.in', 'StrongPass1');
-    expect(
-      await screen.findByText(
-        'This app is for field employees. Company admins sign in on the Work Trail website.',
-      ),
-    ).toBeOnTheScreen();
+    await submit('rahul@acme.in', 'WrongPass1');
+    expect(await screen.findByText('Email or password is incorrect.')).toBeOnTheScreen();
   });
 });

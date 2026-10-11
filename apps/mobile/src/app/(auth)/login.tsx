@@ -44,7 +44,7 @@ export default function LoginScreen() {
     <Screen>
       <Logo />
       <Text style={styles.title}>Sign in</Text>
-      <Text style={styles.sub}>Use the email and password you set when you joined.</Text>
+      <Text style={styles.sub}>For admins and returning employees. Use the email and password you set.</Text>
       <TextField
         label="Email address"
         value={email}

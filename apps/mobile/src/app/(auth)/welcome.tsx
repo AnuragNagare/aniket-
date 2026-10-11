@@ -11,11 +11,6 @@ export default function WelcomeScreen() {
   const router = useRouter();
   return (
     <Screen>
-      <View style={styles.header}>
-        <Text accessibilityRole="link" onPress={() => router.push('/login')} style={styles.skip}>
-          Skip
-        </Text>
-      </View>
       <View style={styles.hero}>
         <Logo size="lg" />
         <Text style={styles.tagline}>
@@ -36,15 +31,23 @@ export default function WelcomeScreen() {
           </Text>
         ))}
       </View>
-      <Button title="Get started" onPress={() => router.push('/join')} />
-      <Button title="Sign in" variant="secondary" onPress={() => router.push('/login')} />
+      <View style={styles.choice}>
+        <Button title="Get started" onPress={() => router.push('/join')} />
+        <Text style={styles.caption}>I am an employee and have an invite link</Text>
+      </View>
+      <View style={styles.choice}>
+        <Button title="Sign in" variant="secondary" onPress={() => router.push('/login')} />
+        <Text style={styles.caption}>Admins and returning employees</Text>
+      </View>
+      <View style={styles.choice}>
+        <Button title="Register" variant="secondary" onPress={() => router.push('/register')} />
+        <Text style={styles.caption}>New admin: create your company account</Text>
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { alignItems: 'flex-end' },
-  skip: { fontFamily: fonts.semibold, color: colors.brand700, fontSize: 16, padding: 4 },
   hero: { alignItems: 'center', gap: 10 },
   tagline: {
     fontFamily: fonts.body,
@@ -53,7 +56,7 @@ const styles = StyleSheet.create({
     color: colors.ink500,
     textAlign: 'center',
   },
-  art: { width: '100%', height: 260 },
+  art: { width: '100%', height: 200 },
   tiles: {
     flexDirection: 'row',
     backgroundColor: colors.surface,
@@ -69,4 +72,6 @@ const styles = StyleSheet.create({
     color: colors.ink900,
     paddingHorizontal: 6,
   },
+  choice: { gap: 6 },
+  caption: { fontFamily: fonts.body, fontSize: 14, color: colors.ink500, textAlign: 'center' },
 });

@@ -1,6 +1,6 @@
 import { Alert } from 'react-native';
 import { create } from 'zustand';
-import type { AuthTokens, AuthUser } from '@worktrail/types';
+import type { AdminSignupInput, AuthTokens, AuthUser } from '@worktrail/types';
 import { api, ApiError } from '../api';
 import { getOutbox, getUpdateQueue } from '../tracking/store';
 import { stopTracking } from '../tracking/tracking';
@@ -16,6 +16,7 @@ type AuthState = {
   bootstrap(): Promise<void>;
   signIn(email: string, password: string): Promise<void>;
   acceptInvite(token: string, name: string, password: string): Promise<void>;
+  register(input: AdminSignupInput): Promise<void>;
   signOut(): Promise<void>;
   refreshAccessToken(): Promise<string | null>;
   clearLocal(): Promise<void>;
@@ -25,18 +26,8 @@ type AuthState = {
 const isNetwork = (e: unknown) => e instanceof ApiError && e.code === 'NETWORK';
 
 export const useAuthStore = create<AuthState>((set, get) => {
-  /** Accepts tokens from login/invite. Only employees may use the app. */
+  /** Accepts tokens from login, invite or sign-up. Employees and admins both use this app; the role picks their screens. */
   async function adopt(tokens: AuthTokens) {
-    if (tokens.user.role !== 'EMPLOYEE') {
-      await api
-        .request('POST', '/auth/logout', { refreshToken: tokens.refreshToken }, { auth: false })
-        .catch(() => undefined);
-      throw new ApiError(
-        403,
-        'USE_WEB_DASHBOARD',
-        'This app is for field employees. Company admins sign in on the Work Trail website.',
-      );
-    }
     await tokenStorage.set(tokens.refreshToken);
     set({ status: 'signedIn', user: tokens.user, accessToken: tokens.accessToken });
   }
@@ -75,6 +66,13 @@ export const useAuthStore = create<AuthState>((set, get) => {
         { name, password },
         { auth: false },
       );
+      await adopt(tokens);
+    },
+
+    async register(input) {
+      const tokens = await api.request<AuthTokens>('POST', '/auth/signup/admin', input, {
+        auth: false,
+      });
       await adopt(tokens);
     },
 

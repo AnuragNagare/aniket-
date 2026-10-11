@@ -42,18 +42,46 @@ describe('auth store', () => {
     expect(await SecureStore.getItemAsync('wt.refresh')).toBe('rt-1');
   });
 
-  it('refuses admins, revokes their token and stores nothing', async () => {
-    fetchMock
-      .mockReturnValueOnce(json(tokens('OWNER')))
-      .mockReturnValueOnce(Promise.resolve(new Response(null, { status: 204 })));
-    await expect(useAuthStore.getState().signIn('a@b.in', 'pw')).rejects.toMatchObject({
-      code: 'USE_WEB_DASHBOARD',
-      message:
-        'This app is for field employees. Company admins sign in on the Work Trail website.',
+  it('signs in an admin and keeps their session like an employee', async () => {
+    fetchMock.mockReturnValueOnce(json(tokens('OWNER')));
+    await useAuthStore.getState().signIn('a@b.in', 'pw');
+    expect(useAuthStore.getState()).toMatchObject({ status: 'signedIn', accessToken: 'at' });
+    expect(useAuthStore.getState().user?.role).toBe('OWNER');
+    expect(await SecureStore.getItemAsync('wt.refresh')).toBe('rt-1');
+    expect(fetchMock).toHaveBeenCalledTimes(1); // no revoke call
+  });
+
+  it('register creates the company and owner, then signs them in', async () => {
+    fetchMock.mockReturnValueOnce(json(tokens('OWNER')));
+    await useAuthStore.getState().register({
+      companyName: 'Acme Services',
+      name: 'Rahul Shah',
+      email: 'rahul@acme.in',
+      phone: '+919876543210',
+      password: 'StrongPass1',
     });
-    expect(fetchMock.mock.calls[1][0]).toMatch(/\/auth\/logout$/);
-    expect(await SecureStore.getItemAsync('wt.refresh')).toBeNull();
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toMatch(/\/auth\/signup\/admin$/);
+    expect(JSON.parse(init.body)).toMatchObject({ companyName: 'Acme Services', email: 'rahul@acme.in' });
+    expect(useAuthStore.getState()).toMatchObject({ status: 'signedIn' });
+    expect(await SecureStore.getItemAsync('wt.refresh')).toBe('rt-1');
+  });
+
+  it('register passes the server error through (for example an email already in use)', async () => {
+    fetchMock.mockReturnValueOnce(
+      json({ error: { code: 'EMAIL_TAKEN', message: 'An account with this email already exists. Sign in instead.', details: {} } }, 409),
+    );
+    await expect(
+      useAuthStore.getState().register({
+        companyName: 'Acme',
+        name: 'Rahul Shah',
+        email: 'rahul@acme.in',
+        phone: '+919876543210',
+        password: 'StrongPass1',
+      }),
+    ).rejects.toMatchObject({ code: 'EMAIL_TAKEN' });
     expect(useAuthStore.getState().status).not.toBe('signedIn');
+    expect(await SecureStore.getItemAsync('wt.refresh')).toBeNull();
   });
 
   it('bootstrap with no saved token goes to signed out', async () => {
