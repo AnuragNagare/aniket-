@@ -2,8 +2,11 @@ import '../tracking/background-task'; // Android runs this task headless; it mus
 import { useEffect } from 'react';
 import * as Sentry from '@sentry/react-native';
 import { initMonitoring } from '../monitoring';
+import { installCrashRecorder } from '../debug/crash-report';
+import { CrashScreen } from '../components/CrashScreen';
 
 initMonitoring();
+installCrashRecorder();
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -71,6 +74,11 @@ function RootLayout() {
       </Stack>
     </QueryClientProvider>
   );
+}
+
+/** expo-router shows this instead of closing the app when a screen throws. */
+export function ErrorBoundary({ error, retry }: { error: Error; retry: () => void }) {
+  return <CrashScreen error={error} retry={retry} />;
 }
 
 export default Sentry.wrap(RootLayout);

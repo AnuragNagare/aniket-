@@ -1,6 +1,7 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button } from '../../components/Button';
+import { LastCrashNotice } from '../../components/LastCrashNotice';
 import { Logo } from '../../components/Logo';
 import { Screen } from '../../components/Screen';
 import { colors, fonts, radius, shadow } from '../../theme/theme';
@@ -11,6 +12,7 @@ export default function WelcomeScreen() {
   const router = useRouter();
   return (
     <Screen>
+      <LastCrashNotice />
       <View style={styles.hero}>
         <Logo size="lg" />
         <Text style={styles.tagline}>

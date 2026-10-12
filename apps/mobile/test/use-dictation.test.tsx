@@ -52,4 +52,14 @@ describe('useDictation', () => {
     expect(M.stop).toHaveBeenCalled();
     expect(result.current.state).toBe('idle');
   });
+
+  it('does not crash when the speech service throws on start', async () => {
+    M.start.mockImplementationOnce(() => {
+      throw new Error('service not bound');
+    });
+    const { result } = renderHook(() => useDictation({ locale: 'en-IN', onFinal: jest.fn() }));
+    await act(() => result.current.start());
+    expect(result.current.state).toBe('idle');
+    expect(result.current.error).toContain('service not bound');
+  });
 });

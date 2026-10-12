@@ -44,22 +44,38 @@ export function useDictation({ locale, onFinal }: { locale: DictationLocale; onF
 
   const start = useCallback(async () => {
     setError(null);
-    if (!ExpoSpeechRecognitionModule.isRecognitionAvailable()) {
+    let available = false;
+    try {
+      available = ExpoSpeechRecognitionModule.isRecognitionAvailable();
+    } catch {
+      available = false;
+    }
+    if (!available) {
       setState('unavailable');
       setError(UNAVAILABLE);
       return;
     }
-    const perm = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-    if (!perm.granted) {
-      setError(MESSAGES['not-allowed']!);
-      return;
+    try {
+      const perm = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      if (!perm.granted) {
+        setError(MESSAGES['not-allowed']!);
+        return;
+      }
+      ExpoSpeechRecognitionModule.start({ lang: locale, interimResults: true, continuous: true, addsPunctuation: true });
+      setState('listening');
+    } catch (e) {
+      // A speech service that throws must not take the whole screen down; typing still works.
+      setError(`${FALLBACK} (${e instanceof Error ? e.message : 'unknown error'})`);
+      setState('idle');
     }
-    ExpoSpeechRecognitionModule.start({ lang: locale, interimResults: true, continuous: true, addsPunctuation: true });
-    setState('listening');
   }, [locale]);
 
   const stop = useCallback(() => {
-    ExpoSpeechRecognitionModule.stop();
+    try {
+      ExpoSpeechRecognitionModule.stop();
+    } catch {
+      setState('idle');
+    }
   }, []);
 
   return { state, interim, error, start, stop };

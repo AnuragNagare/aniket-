@@ -8,6 +8,7 @@ import { useMe } from '../../auth/use-me';
 import { Button } from '../../components/Button';
 import { Logo } from '../../components/Logo';
 import { Notice } from '../../components/Notice';
+import { LastCrashNotice } from '../../components/LastCrashNotice';
 import { Screen } from '../../components/Screen';
 import { StatusPill } from '../../components/StatusPill';
 import { TrackingStatus, TRACKING_STATUS_KEY } from '../../components/TrackingStatus';
@@ -136,6 +137,7 @@ export default function HomeScreen() {
   return (
     <Screen>
       {header}
+      <LastCrashNotice />
       <Text style={styles.greeting}>Hi {firstName}</Text>
 
       {s ? (

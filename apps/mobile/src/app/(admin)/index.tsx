@@ -10,6 +10,7 @@ import { QueryGate } from '../../components/admin/QueryGate';
 import { KpiCard } from '../../components/admin/KpiCard';
 import { UpdateItem } from '../../components/admin/UpdateItem';
 import { Button } from '../../components/Button';
+import { LastCrashNotice } from '../../components/LastCrashNotice';
 import { Chip } from '../../components/Chip';
 import { Screen } from '../../components/Screen';
 import { colors, fonts } from '../../theme/theme';
@@ -33,6 +34,7 @@ export default function DashboardScreen() {
 
   return (
     <Screen onRefresh={() => void q.refetch()} refreshing={q.isRefetching}>
+      <LastCrashNotice />
       <View style={styles.header}>
         <View style={styles.headerText}>
           <Text style={styles.title}>Hello, {name.trim().split(/\s+/)[0]}</Text>
