@@ -16,7 +16,7 @@
       "package": "in.worktrail.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundColor": "#FE5A0C"
+        "backgroundColor": "#FBF3EC"
       },
       "permissions": [
         "ACCESS_COARSE_LOCATION",
