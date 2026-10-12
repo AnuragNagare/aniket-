@@ -43,6 +43,18 @@ describe('Employee detail', () => {
     expect(hooks.useEmployeeSummary).toHaveBeenCalledWith('e1', { from: '2026-10-07', to: '2026-10-07' });
   });
 
+  it('opens the matching tab when an overview card is tapped', () => {
+    render(<EmployeeDetailScreen />);
+    fireEvent.press(screen.getByLabelText('Updates: 3'));
+    expect(screen.getByText('No updates in this period.')).toBeOnTheScreen();
+    fireEvent.press(screen.getByRole('button', { name: 'Overview' }));
+    fireEvent.press(screen.getByLabelText('Time worked: 6h 24m'));
+    expect(screen.getByText('No work sessions in this period.')).toBeOnTheScreen();
+    fireEvent.press(screen.getByRole('button', { name: 'Overview' }));
+    fireEvent.press(screen.getByLabelText('Distance: 12.5 km'));
+    expect(screen.getByText('MAP 0 points')).toBeOnTheScreen();
+  });
+
   it('changing the period reloads with that period (this week starts Monday)', () => {
     render(<EmployeeDetailScreen />);
     fireEvent.press(screen.getByRole('button', { name: 'This week' }));
@@ -57,11 +69,11 @@ describe('Employee detail', () => {
 
   it('Updates tab lists updates with AI summaries, or says there are none', () => {
     render(<EmployeeDetailScreen />);
-    fireEvent.press(screen.getByRole('button', { name: 'Updates' }));
+    fireEvent.press(screen.getAllByRole('button', { name: 'Updates' })[0]!);
     expect(screen.getByText('No updates in this period.')).toBeOnTheScreen();
     jest.mocked(hooks.useEmployeeUpdates).mockReturnValue(q({ data: { items: [{ id: 'u1', clientUpdateId: 'c', sessionId: 's', text: 'Installed sensors at the clinic.', inputMethod: 'TYPED', category: 'INSTALLATION', submittedAt: '2026-10-07T05:00:00.000Z', summaryStatus: 'COMPLETE', aiSummary: { summary: 'Installed sensors.', activities: [], issues: [], followUps: [], confidence: 'HIGH' } }], page: 1, pageSize: 20, total: 1 } }) as never);
     fireEvent.press(screen.getByRole('button', { name: 'Overview' }));
-    fireEvent.press(screen.getByRole('button', { name: 'Updates' }));
+    fireEvent.press(screen.getAllByRole('button', { name: 'Updates' })[0]!);
     expect(screen.getByText('Installed sensors at the clinic.')).toBeOnTheScreen();
     expect(screen.getByText('Installed sensors.')).toBeOnTheScreen();
   });

@@ -27,8 +27,9 @@ import { colors, fonts } from '../../../theme/theme';
 const TABS = ['Overview', 'Updates', 'Hours', 'Map'] as const;
 type Tab = (typeof TABS)[number];
 type TabProps = { id: string; range: DateRange; tz: string };
+type OverviewProps = TabProps & { onOpen: (tab: Tab) => void };
 
-function OverviewTab({ id, range, tz }: TabProps) {
+function OverviewTab({ id, range, tz, onOpen }: OverviewProps) {
   const q = useEmployeeSummary(id, range);
   const s = q.data;
   return (
@@ -37,10 +38,10 @@ function OverviewTab({ id, range, tz }: TabProps) {
         <>
           {s.leftRunning ? <Notice tone="warning">A work session is still open. Check the Hours tab to close it if it was forgotten.</Notice> : null}
           <View style={styles.kpis}>
-            <KpiCard label="Time worked" value={formatMinutes(s.totalMinutes)} caption={`${s.daysWorked} day${s.daysWorked === 1 ? '' : 's'} worked`} />
-            <KpiCard label="Updates" value={String(s.updateCount)} />
-            <KpiCard label="Distance" value={`${s.distanceKm} km`} caption="Estimate from recorded locations" />
-            <KpiCard label="Locations" value={String(s.pointCount)} />
+            <KpiCard label="Time worked" value={formatMinutes(s.totalMinutes)} caption={`${s.daysWorked} day${s.daysWorked === 1 ? '' : 's'} worked`} onPress={() => onOpen('Hours')} />
+            <KpiCard label="Updates" value={String(s.updateCount)} onPress={() => onOpen('Updates')} />
+            <KpiCard label="Distance" value={`${s.distanceKm} km`} caption="Estimate from recorded locations" onPress={() => onOpen('Map')} />
+            <KpiCard label="Locations" value={String(s.pointCount)} onPress={() => onOpen('Map')} />
           </View>
           <Text style={styles.sub}>{s.lastSeenAt ? `Last location ${dateTimeIn(s.lastSeenAt, tz)}` : 'No location recorded yet'}</Text>
         </>
@@ -147,7 +148,7 @@ export default function EmployeeDetailScreen() {
                 <Chip key={t} label={t} selected={t === tab} onPress={() => setTab(t)} />
               ))}
             </View>
-            {tab === 'Overview' ? <OverviewTab id={id} range={range} tz={tz} /> : null}
+            {tab === 'Overview' ? <OverviewTab id={id} range={range} tz={tz} onOpen={setTab} /> : null}
             {tab === 'Updates' ? <UpdatesTab id={id} range={range} tz={tz} /> : null}
             {tab === 'Hours' ? <HoursTab id={id} range={range} /> : null}
             {tab === 'Map' ? <MapTab id={id} range={range} tz={tz} /> : null}

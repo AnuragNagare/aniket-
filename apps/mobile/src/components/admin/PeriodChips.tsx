@@ -8,7 +8,7 @@ export const APP_PRESETS: AppPreset[] = ['today', 'yesterday', 'this-week', 'las
 
 export function PeriodChips({ value, onChange }: { value: AppPreset; onChange: (p: AppPreset) => void }) {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scroll} contentContainerStyle={styles.row}>
       {APP_PRESETS.map((p) => (
         <Chip key={p} label={PRESET_LABELS[p]} selected={p === value} onPress={() => onChange(p)} />
       ))}
@@ -16,4 +16,5 @@ export function PeriodChips({ value, onChange }: { value: AppPreset; onChange: (
   );
 }
 
-const styles = StyleSheet.create({ row: { gap: 8, paddingVertical: 2 } });
+// flexGrow 0: inside a growing screen body a horizontal ScrollView otherwise stretches to fill the height.
+const styles = StyleSheet.create({ scroll: { flexGrow: 0 }, row: { gap: 8, paddingVertical: 2 } });

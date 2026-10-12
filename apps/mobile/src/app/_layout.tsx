@@ -14,6 +14,7 @@ import {
   Barlow_600SemiBold,
 } from '@expo-google-fonts/barlow';
 import { BarlowSemiCondensed_700Bold } from '@expo-google-fonts/barlow-semi-condensed';
+import { warmUpApi } from '../api/warm-up';
 import { useAuthStore } from '../auth/auth-store';
 import { homeFor } from '../auth/home-for';
 
@@ -33,6 +34,7 @@ function RootLayout() {
   const home = useAuthStore((s) => homeFor(s.user?.role));
 
   useEffect(() => {
+    warmUpApi();
     void useAuthStore.getState().bootstrap();
     // Never show one person's data to the next person who signs in on this phone.
     return useAuthStore.subscribe((s, prev) => {
