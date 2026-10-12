@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Share, StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { EmployeeStatus } from '@worktrail/types';
 import { useEmployees, useResendInvite } from '../../../admin/hooks';
 import { inviteMessage } from '../../../admin/invite-message';
@@ -24,10 +24,15 @@ const FILTERS: Array<{ label: string; value: EmployeeStatus | undefined }> = [
 
 export default function EmployeesScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ status?: string }>();
   const { companyName } = useCompanyDay();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<EmployeeStatus | undefined>(undefined);
   const [page, setPage] = useState(1);
+  // The dashboard's "Working now" card opens this tab with ?status=WORKING.
+  useEffect(() => {
+    if (params.status === 'WORKING') setStatus('WORKING');
+  }, [params.status]);
   const query = useDebounced(search.trim());
   const q = useEmployees({ query: query || undefined, status, page });
   const resend = useResendInvite();

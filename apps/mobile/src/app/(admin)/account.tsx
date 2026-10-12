@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useCompanyDay } from '../../admin/use-company';
 import { useAuthStore } from '../../auth/auth-store';
+import { useConfirmSignOut } from '../../auth/use-confirm-sign-out';
 import { Button } from '../../components/Button';
 import { Notice } from '../../components/Notice';
 import { Screen } from '../../components/Screen';
@@ -9,22 +9,8 @@ import { colors, fonts, radius, shadow } from '../../theme/theme';
 
 export default function AccountScreen() {
   const user = useAuthStore((s) => s.user);
-  const signOut = useAuthStore((s) => s.signOut);
   const { companyName } = useCompanyDay();
-  const [busy, setBusy] = useState(false);
-
-  const confirm = () =>
-    Alert.alert('Sign out?', 'You will need your email and password to sign in again.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign out',
-        style: 'destructive',
-        onPress: () => {
-          setBusy(true);
-          void signOut().finally(() => setBusy(false));
-        },
-      },
-    ]);
+  const { confirm, busy } = useConfirmSignOut();
 
   return (
     <Screen>
